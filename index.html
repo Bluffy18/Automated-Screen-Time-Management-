@@ -22,7 +22,6 @@
             text-align: center;
             max-width: 350px;
             width: 90%;
-            position: relative;
         }
         h1 { font-size: 20px; color: #333; margin-bottom: 5px; }
         p { font-size: 14px; color: #666; }
@@ -57,13 +56,14 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        button:hover { background-color: #0056b3; }
+        .btn-reset {
+            background-color: #dc3545;
+        }
         #status {
             margin-top: 15px;
             font-weight: bold;
             color: #28a745;
         }
-        /* Overlay kapag naabot na ang screen time limit */
         .lock-overlay {
             display: none;
             position: fixed;
@@ -85,7 +85,6 @@
 </head>
 <body>
 
-    <!-- Full Screen Lock Message -->
     <div id="lockScreen" class="lock-overlay">
         <h2>🔒 Time's Up!</h2>
         <p>Screen Time Limit Reached.</p>
@@ -112,20 +111,31 @@
         </div>
 
         <button onclick="saveSchedule()">Save Schedule</button>
+        <button onclick="clearSchedule()" class="btn-reset">Clear Schedule</button>
 
         <p id="status"></p>
     </div>
 
     <script>
-        let endScheduleTime = null;
+        // Load saved values on startup
+        window.onload = function() {
+            const savedStart = localStorage.getItem('startTime');
+            const savedEnd = localStorage.getItem('endTime');
 
-        // Real-time clock checker
+            if (savedStart && savedEnd) {
+                document.getElementById('startTime').value = savedStart;
+                document.getElementById('endTime').value = savedEnd;
+                document.getElementById('status').innerText = `Saved schedule: ${savedStart} - ${savedEnd}`;
+            }
+            updateClock();
+        };
+
         function updateClock() {
             const now = new Date();
-            const timeString = now.toLocaleTimeString();
-            document.getElementById('currentTime').innerText = timeString;
+            document.getElementById('currentTime').innerText = now.toLocaleTimeString();
 
-            // Check if limit is reached
+            const endScheduleTime = localStorage.getItem('endTime');
+
             if (endScheduleTime) {
                 const currentMinutes = now.getHours() * 60 + now.getMinutes();
                 const [endHours, endMins] = endScheduleTime.split(':').map(Number);
@@ -136,6 +146,8 @@
                 } else {
                     document.getElementById('lockScreen').style.display = 'none';
                 }
+            } else {
+                document.getElementById('lockScreen').style.display = 'none';
             }
         }
 
@@ -150,8 +162,19 @@
                 return;
             }
 
-            endScheduleTime = end;
+            localStorage.setItem('startTime', start);
+            localStorage.setItem('endTime', end);
+
             document.getElementById('status').innerText = `Schedule active until ${end}`;
+            updateClock();
+        }
+
+        function clearSchedule() {
+            localStorage.removeItem('startTime');
+            localStorage.removeItem('endTime');
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            document.getElementById('status').innerText = 'Schedule cleared.';
             updateClock();
         }
     </script>
