@@ -38,14 +38,6 @@
             margin: 12px 0;
             text-align: left;
         }
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #444;
-            margin: 10px 0;
-        }
         label { font-size: 13px; font-weight: bold; color: #444; }
         input[type="text"], input[type="password"], input[type="time"] {
             width: 100%;
@@ -69,22 +61,19 @@
         .btn-green { background-color: #28a745; }
         .btn-reset { background-color: #dc3545; }
         .btn-logout { background-color: #6c757d; }
-        .link-btn {
-            background: none;
-            border: none;
-            color: #007bff;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 13px;
-            margin-top: 15px;
-            padding: 0;
-            width: auto;
+        .otp-box {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            color: #28a745;
+            margin: 10px 0;
+            display: none;
         }
         #status { margin-top: 15px; font-weight: bold; color: #28a745; }
-        #credStatus, #setupStatus { margin-top: 10px; font-weight: bold; color: #28a745; font-size: 13px; }
         #loginError { color: #dc3545; font-size: 13px; margin-top: 10px; }
         
-        #dashboard, #setupCard { display: none; }
+        #dashboard, #otpSection { display: none; }
 
         .lock-overlay {
             display: none;
@@ -113,59 +102,41 @@
         <p>Screen Time Restricted Period Active.</p>
         <p>Please take a break and put away your device.</p>
         <button onclick="emergencyReset()" class="btn-reset" style="width: auto; padding: 10px 20px; margin-top: 15px;">Clear Schedule & Unlock</button>
-        <button onclick="logout()" class="btn-logout" style="width: auto; padding: 10px 20px; margin-top: 10px;">Back to Login</button>
+        <button onclick="logout()" class="btn-logout" style="width: auto; padding: 10px 20px; margin-top: 10px;">Logout</button>
     </div>
 
-    <!-- LOGIN CARD -->
-    <div id="loginCard" class="container">
-        <h1>User Login</h1>
-        <p>Access Screen Time Controls</p>
+    <!-- AUTHENTICATION CARD (LOGIN & OTP) -->
+    <div id="authCard" class="container">
+        <h1>User Verification</h1>
+        <p>Enter Gmail or Phone Number to access</p>
 
-        <div class="input-group">
-            <label>Username:</label>
-            <input type="text" id="username" placeholder="Enter username">
+        <!-- STEP 1: Enter Contact Info -->
+        <div id="contactSection">
+            <div class="input-group">
+                <label>Gmail or Phone Number:</label>
+                <input type="text" id="contactInput" placeholder="e.g. user@gmail.com / 09123456789">
+            </div>
+            <button onclick="sendOTP()" class="btn-green">Send OTP Code</button>
         </div>
 
-        <div class="input-group">
-            <label>Password:</label>
-            <input type="password" id="password" placeholder="Enter password">
+        <!-- SIMULATED OTP NOTIFICATION -->
+        <div id="otpDisplayBox" class="otp-box">
+            System OTP Code: <span id="generatedOTP">------</span>
         </div>
 
-        <button onclick="login()">Login</button>
+        <!-- STEP 2: Enter OTP -->
+        <div id="otpSection">
+            <div class="input-group">
+                <label>Enter 6-Digit OTP:</label>
+                <input type="text" id="otpInput" placeholder="Enter 6-digit code">
+            </div>
+            <button onclick="verifyOTP()">Verify & Access System</button>
+        </div>
+
         <p id="loginError"></p>
-
-        <p style="margin-top: 15px; font-size: 13px; color: #666;">
-            or <button onclick="showSetup()" class="link-btn">Set-up new profile</button>
-        </p>
     </div>
 
-    <!-- SETUP NEW PROFILE CARD -->
-    <div id="setupCard" class="container">
-        <h1>Set-up New Profile</h1>
-        <p>Create credentials for access</p>
-
-        <div class="input-group">
-            <label>New Username:</label>
-            <input type="text" id="setupUsername" placeholder="Enter new username">
-        </div>
-
-        <div class="input-group">
-            <label>New Password:</label>
-            <input type="password" id="setupPassword" placeholder="Enter new password">
-        </div>
-
-        <div class="checkbox-group">
-            <input type="checkbox" id="saveProfileCheck" checked>
-            <label for="saveProfileCheck">Save username and password in browser</label>
-        </div>
-
-        <button onclick="registerProfile()" class="btn-green">Create Profile</button>
-        <p id="setupStatus"></p>
-
-        <button onclick="showLogin()" class="btn-logout">Back to Login</button>
-    </div>
-
-    <!-- MAIN DASHBOARD -->
+    <!-- MAIN HOME / DASHBOARD -->
     <div id="dashboard" class="container">
         <h1>Screen Time Manager</h1>
         <p>Set your restricted screen time window.</p>
@@ -188,140 +159,80 @@
         <button onclick="saveSchedule()">Save Schedule</button>
         <button onclick="clearSchedule()" class="btn-reset">Clear Schedule</button>
 
-        <!-- ACCOUNT SETTINGS -->
-        <h2>Account Settings</h2>
-        <div class="input-group">
-            <label>Update Username:</label>
-            <input type="text" id="newUsername" placeholder="Enter new username">
-        </div>
-
-        <div class="input-group">
-            <label>Update Password:</label>
-            <input type="password" id="newPassword" placeholder="Enter new password">
-        </div>
-
-        <div class="checkbox-group">
-            <input type="checkbox" id="saveCredentialsCheck" checked>
-            <label for="saveCredentialsCheck">Save username and password in browser</label>
-        </div>
-
-        <button onclick="updateCredentials()" class="btn-green">Update Credentials</button>
-        <p id="credStatus"></p>
-
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <button onclick="logout()" class="btn-logout">Logout</button>
+        <button onclick="logout()" class="btn-logout">Logout System</button>
 
         <p id="status"></p>
     </div>
 
     <script>
+        let currentGeneratedOTP = null;
+
         window.onload = function() {
-            sessionStorage.setItem('isLoggedIn', 'false');
-            showLogin();
+            // Tinitignan kung naka-login na dati ang user sa browser
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+
+            if (isLoggedIn) {
+                showDashboard();
+            } else {
+                showAuth();
+            }
+
             updateClock();
         };
 
-        function showLogin() {
-            document.getElementById('loginCard').style.display = 'block';
-            document.getElementById('setupCard').style.display = 'none';
+        function showAuth() {
+            document.getElementById('authCard').style.display = 'block';
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('contactSection').style.display = 'block';
+            document.getElementById('otpSection').style.display = 'none';
+            document.getElementById('otpDisplayBox').style.display = 'none';
         }
 
-        function showSetup() {
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('setupCard').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('lockScreen').style.display = 'none';
-        }
+        function sendOTP() {
+            const contact = document.getElementById('contactInput').value.trim();
 
-        function login() {
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-
-            const validUser = localStorage.getItem('appUsername') || sessionStorage.getItem('tempUsername') || 'admin';
-            const validPass = localStorage.getItem('appPassword') || sessionStorage.getItem('tempPassword') || '1234';
-
-            if (user === validUser && pass === validPass) {
-                sessionStorage.setItem('isLoggedIn', 'true');
-                showDashboard();
-            } else {
-                document.getElementById('loginError').innerText = 'Invalid username or password!';
-            }
-        }
-
-        function registerProfile() {
-            const newUser = document.getElementById('setupUsername').value;
-            const newPass = document.getElementById('setupPassword').value;
-            const shouldSave = document.getElementById('saveProfileCheck').checked;
-
-            if (!newUser || !newPass) {
-                alert('Please enter both username and password!');
+            if (!contact) {
+                document.getElementById('loginError').innerText = 'Please enter a valid Gmail or Phone number!';
                 return;
             }
 
-            if (shouldSave) {
-                localStorage.setItem('appUsername', newUser);
-                localStorage.setItem('appPassword', newPass);
-                sessionStorage.removeItem('tempUsername');
-                sessionStorage.removeItem('tempPassword');
-                document.getElementById('setupStatus').innerText = 'Profile saved permanently! You can now login.';
-            } else {
-                sessionStorage.setItem('tempUsername', newUser);
-                sessionStorage.setItem('tempPassword', newPass);
-                localStorage.removeItem('appUsername');
-                localStorage.removeItem('appPassword');
-                document.getElementById('setupStatus').innerText = 'Temporary profile created! (Active for this session only)';
-            }
+            // Gumawa ng random 6-digit OTP code
+            currentGeneratedOTP = Math.floor(100000 + Math.random() * 900000).toString();
 
-            document.getElementById('setupUsername').value = '';
-            document.getElementById('setupPassword').value = '';
+            // Ipakita ang simulated OTP sa screen (para sa testing)
+            document.getElementById('generatedOTP').innerText = currentGeneratedOTP;
+            document.getElementById('otpDisplayBox').style.display = 'block';
 
-            setTimeout(() => {
-                document.getElementById('setupStatus').innerText = '';
-                showLogin();
-            }, 1500);
-        }
-
-        function updateCredentials() {
-            const newUser = document.getElementById('newUsername').value;
-            const newPass = document.getElementById('newPassword').value;
-            const shouldSave = document.getElementById('saveCredentialsCheck').checked;
-
-            if (!newUser || !newPass) {
-                alert('Please enter both new username and password!');
-                return;
-            }
-
-            if (shouldSave) {
-                localStorage.setItem('appUsername', newUser);
-                localStorage.setItem('appPassword', newPass);
-                sessionStorage.removeItem('tempUsername');
-                sessionStorage.removeItem('tempPassword');
-                document.getElementById('credStatus').innerText = 'Credentials saved permanently!';
-            } else {
-                sessionStorage.setItem('tempUsername', newUser);
-                sessionStorage.setItem('tempPassword', newPass);
-                localStorage.removeItem('appUsername');
-                localStorage.removeItem('appPassword');
-                document.getElementById('credStatus').innerText = 'Credentials updated for session only (Not Saved)!';
-            }
-
-            document.getElementById('newUsername').value = '';
-            document.getElementById('newPassword').value = '';
-        }
-
-        function logout() {
-            sessionStorage.setItem('isLoggedIn', 'false');
-            showLogin();
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
+            document.getElementById('contactSection').style.display = 'none';
+            document.getElementById('otpSection').style.display = 'block';
             document.getElementById('loginError').innerText = '';
         }
 
+        function verifyOTP() {
+            const userOTP = document.getElementById('otpInput').value.trim();
+
+            if (userOTP === currentGeneratedOTP) {
+                // I-save sa localStorage para manatiling logged in kahit i-close ang browser
+                localStorage.setItem('isLoggedIn', 'true');
+                document.getElementById('loginError').innerText = '';
+                showDashboard();
+            } else {
+                document.getElementById('loginError').innerText = 'Invalid OTP Code. Please try again.';
+            }
+        }
+
+        function logout() {
+            // Tatanggalin ang login status para hingian ulit ng OTP
+            localStorage.setItem('isLoggedIn', 'false');
+            document.getElementById('contactInput').value = '';
+            document.getElementById('otpInput').value = '';
+            showAuth();
+        }
+
         function showDashboard() {
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('setupCard').style.display = 'none';
+            document.getElementById('authCard').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
 
             const savedStart = localStorage.getItem('startTime');
@@ -338,7 +249,7 @@
             const now = new Date();
             document.getElementById('currentTime').innerText = now.toLocaleTimeString();
 
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             const startScheduleTime = localStorage.getItem('startTime');
             const endScheduleTime = localStorage.getItem('endTime');
 
@@ -353,14 +264,11 @@
 
                 let isLocked = false;
 
-                // Same-day restriction (Halimbawa: 1:00 AM hanggang 1:54 AM)
                 if (startMinutes < endMinutes) {
                     if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
                         isLocked = true;
                     }
-                } 
-                // Overnight restriction (Halimbawa: 10:00 PM hanggang 6:00 AM)
-                else {
+                } else {
                     if (currentMinutes >= startMinutes || currentMinutes < endMinutes) {
                         isLocked = true;
                     }
