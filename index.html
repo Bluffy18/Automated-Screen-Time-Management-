@@ -110,7 +110,7 @@
     <!-- LOCK SCREEN OVERLAY -->
     <div id="lockScreen" class="lock-overlay">
         <h2>🔒 Time's Up!</h2>
-        <p>Screen Time Limit Reached.</p>
+        <p>Screen Time Restricted Period Active.</p>
         <p>Please take a break and put away your device.</p>
         <button onclick="emergencyReset()" class="btn-reset" style="width: auto; padding: 10px 20px; margin-top: 15px;">Clear Schedule & Unlock</button>
         <button onclick="logout()" class="btn-logout" style="width: auto; padding: 10px 20px; margin-top: 10px;">Back to Login</button>
@@ -168,7 +168,7 @@
     <!-- MAIN DASHBOARD -->
     <div id="dashboard" class="container">
         <h1>Screen Time Manager</h1>
-        <p>Set your daily device schedule.</p>
+        <p>Set your restricted screen time window.</p>
 
         <div class="clock-box">
             <small>Current Time:</small>
@@ -176,12 +176,12 @@
         </div>
 
         <div class="input-group">
-            <label for="startTime">Start Time:</label>
+            <label for="startTime">Lock Start Time:</label>
             <input type="time" id="startTime">
         </div>
 
         <div class="input-group">
-            <label for="endTime">End Time:</label>
+            <label for="endTime">Lock End Time (Power On/Unlock):</label>
             <input type="time" id="endTime">
         </div>
 
@@ -239,7 +239,6 @@
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
 
-            // Checked saved or session credentials, fallback to default admin/1234
             const validUser = localStorage.getItem('appUsername') || sessionStorage.getItem('tempUsername') || 'admin';
             const validPass = localStorage.getItem('appPassword') || sessionStorage.getItem('tempPassword') || '1234';
 
@@ -331,7 +330,7 @@
             if (savedStart && savedEnd) {
                 document.getElementById('startTime').value = savedStart;
                 document.getElementById('endTime').value = savedEnd;
-                document.getElementById('status').innerText = `Saved schedule: ${savedStart} - ${savedEnd}`;
+                document.getElementById('status').innerText = `Restricted schedule: ${savedStart} - ${savedEnd}`;
             }
         }
 
@@ -340,14 +339,34 @@
             document.getElementById('currentTime').innerText = now.toLocaleTimeString();
 
             const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
+            const startScheduleTime = localStorage.getItem('startTime');
             const endScheduleTime = localStorage.getItem('endTime');
 
-            if (isLoggedIn && endScheduleTime) {
+            if (isLoggedIn && startScheduleTime && endScheduleTime) {
                 const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+                const [startHours, startMins] = startScheduleTime.split(':').map(Number);
+                const startMinutes = startHours * 60 + startMins;
+
                 const [endHours, endMins] = endScheduleTime.split(':').map(Number);
                 const endMinutes = endHours * 60 + endMins;
 
-                if (currentMinutes >= endMinutes) {
+                let isLocked = false;
+
+                // Same-day restriction (Halimbawa: 1:00 AM hanggang 1:54 AM)
+                if (startMinutes < endMinutes) {
+                    if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+                        isLocked = true;
+                    }
+                } 
+                // Overnight restriction (Halimbawa: 10:00 PM hanggang 6:00 AM)
+                else {
+                    if (currentMinutes >= startMinutes || currentMinutes < endMinutes) {
+                        isLocked = true;
+                    }
+                }
+
+                if (isLocked) {
                     document.getElementById('lockScreen').style.display = 'flex';
                 } else {
                     document.getElementById('lockScreen').style.display = 'none';
@@ -364,14 +383,14 @@
             const end = document.getElementById('endTime').value;
             
             if (!start || !end) {
-                alert('Please select both start and end times!');
+                alert('Please select both lock start and lock end times!');
                 return;
             }
 
             localStorage.setItem('startTime', start);
             localStorage.setItem('endTime', end);
 
-            document.getElementById('status').innerText = `Schedule active until ${end}`;
+            document.getElementById('status').innerText = `Restricted window active: ${start} to ${end}`;
             updateClock();
         }
 
