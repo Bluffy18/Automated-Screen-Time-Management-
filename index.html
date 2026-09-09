@@ -37,7 +37,7 @@
             text-align: left;
         }
         label { font-size: 14px; font-weight: bold; color: #444; }
-        input[type="time"] {
+        input[type="text"], input[type="password"], input[type="time"] {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
@@ -56,14 +56,15 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        .btn-reset {
-            background-color: #dc3545;
-        }
-        #status {
-            margin-top: 15px;
-            font-weight: bold;
-            color: #28a745;
-        }
+        .btn-reset { background-color: #dc3545; }
+        .btn-logout { background-color: #6c757d; }
+        #status { margin-top: 15px; font-weight: bold; color: #28a745; }
+        #loginError { color: #dc3545; font-size: 13px; margin-top: 10px; }
+        
+        /* Dashboard default hidden */
+        #dashboard { display: none; }
+
+        /* Lock Screen Overlay */
         .lock-overlay {
             display: none;
             position: fixed;
@@ -85,13 +86,35 @@
 </head>
 <body>
 
+    <!-- Full Screen Lock Message -->
     <div id="lockScreen" class="lock-overlay">
         <h2>🔒 Time's Up!</h2>
         <p>Screen Time Limit Reached.</p>
         <p>Please take a break and put away your device.</p>
     </div>
 
-    <div class="container">
+    <!-- LOGIN FORM -->
+    <div id="loginCard" class="container">
+        <h1>User Login</h1>
+        <p>Access Screen Time Controls</p>
+
+        <div class="input-group">
+            <label>Username:</label>
+            <input type="text" id="username" placeholder="Enter username">
+        </div>
+
+        <div class="input-group">
+            <label>Password:</label>
+            <input type="password" id="password" placeholder="Enter password">
+        </div>
+
+        <button onclick="login()">Login</button>
+        <p id="loginError"></p>
+        <p><small>Default: <b>admin</b> / Pass: <b>1234</b></small></p>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard" class="container">
         <h1>Screen Time Manager</h1>
         <p>Set your daily device schedule.</p>
 
@@ -112,13 +135,43 @@
 
         <button onclick="saveSchedule()">Save Schedule</button>
         <button onclick="clearSchedule()" class="btn-reset">Clear Schedule</button>
+        <button onclick="logout()" class="btn-logout">Logout</button>
 
         <p id="status"></p>
     </div>
 
     <script>
-        // Load saved values on startup
+        // Check session on startup
         window.onload = function() {
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                showDashboard();
+            }
+            updateClock();
+        };
+
+        function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            // Simple demo account
+            if (user === 'admin' && pass === '1234') {
+                sessionStorage.setItem('isLoggedIn', 'true');
+                showDashboard();
+            } else {
+                document.getElementById('loginError').innerText = 'Invalid username or password!';
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('isLoggedIn');
+            document.getElementById('loginCard').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+        }
+
+        function showDashboard() {
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+
             const savedStart = localStorage.getItem('startTime');
             const savedEnd = localStorage.getItem('endTime');
 
@@ -127,8 +180,7 @@
                 document.getElementById('endTime').value = savedEnd;
                 document.getElementById('status').innerText = `Saved schedule: ${savedStart} - ${savedEnd}`;
             }
-            updateClock();
-        };
+        }
 
         function updateClock() {
             const now = new Date();
