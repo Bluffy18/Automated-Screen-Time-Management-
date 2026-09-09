@@ -69,11 +69,22 @@
         .btn-green { background-color: #28a745; }
         .btn-reset { background-color: #dc3545; }
         .btn-logout { background-color: #6c757d; }
+        .link-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 15px;
+            padding: 0;
+            width: auto;
+        }
         #status { margin-top: 15px; font-weight: bold; color: #28a745; }
-        #credStatus { margin-top: 10px; font-weight: bold; color: #28a745; font-size: 13px; }
+        #credStatus, #setupStatus { margin-top: 10px; font-weight: bold; color: #28a745; font-size: 13px; }
         #loginError { color: #dc3545; font-size: 13px; margin-top: 10px; }
         
-        #dashboard { display: none; }
+        #dashboard, #setupCard { display: none; }
 
         .lock-overlay {
             display: none;
@@ -122,6 +133,36 @@
 
         <button onclick="login()">Login</button>
         <p id="loginError"></p>
+
+        <p style="margin-top: 15px; font-size: 13px; color: #666;">
+            or <button onclick="showSetup()" class="link-btn">Set-up new profile</button>
+        </p>
+    </div>
+
+    <!-- SETUP NEW PROFILE CARD -->
+    <div id="setupCard" class="container">
+        <h1>Set-up New Profile</h1>
+        <p>Create credentials for access</p>
+
+        <div class="input-group">
+            <label>New Username:</label>
+            <input type="text" id="setupUsername" placeholder="Enter new username">
+        </div>
+
+        <div class="input-group">
+            <label>New Password:</label>
+            <input type="password" id="setupPassword" placeholder="Enter new password">
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="saveProfileCheck" checked>
+            <label for="saveProfileCheck">Save username and password in browser</label>
+        </div>
+
+        <button onclick="registerProfile()" class="btn-green">Create Profile</button>
+        <p id="setupStatus"></p>
+
+        <button onclick="showLogin()" class="btn-logout">Back to Login</button>
     </div>
 
     <!-- MAIN DASHBOARD -->
@@ -150,12 +191,12 @@
         <!-- ACCOUNT SETTINGS -->
         <h2>Account Settings</h2>
         <div class="input-group">
-            <label>New Username:</label>
+            <label>Update Username:</label>
             <input type="text" id="newUsername" placeholder="Enter new username">
         </div>
 
         <div class="input-group">
-            <label>New Password:</label>
+            <label>Update Password:</label>
             <input type="password" id="newPassword" placeholder="Enter new password">
         </div>
 
@@ -176,20 +217,31 @@
     <script>
         window.onload = function() {
             sessionStorage.setItem('isLoggedIn', 'false');
-            document.getElementById('loginCard').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('lockScreen').style.display = 'none';
-            
+            showLogin();
             updateClock();
         };
+
+        function showLogin() {
+            document.getElementById('loginCard').style.display = 'block';
+            document.getElementById('setupCard').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('lockScreen').style.display = 'none';
+        }
+
+        function showSetup() {
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('setupCard').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('lockScreen').style.display = 'none';
+        }
 
         function login() {
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
 
-            // Fallback credentials if not saved in localStorage
-            const validUser = localStorage.getItem('appUsername') || 'admin';
-            const validPass = localStorage.getItem('appPassword') || '1234';
+            // Checked saved or session credentials, fallback to default admin/1234
+            const validUser = localStorage.getItem('appUsername') || sessionStorage.getItem('tempUsername') || 'admin';
+            const validPass = localStorage.getItem('appPassword') || sessionStorage.getItem('tempPassword') || '1234';
 
             if (user === validUser && pass === validPass) {
                 sessionStorage.setItem('isLoggedIn', 'true');
@@ -197,6 +249,39 @@
             } else {
                 document.getElementById('loginError').innerText = 'Invalid username or password!';
             }
+        }
+
+        function registerProfile() {
+            const newUser = document.getElementById('setupUsername').value;
+            const newPass = document.getElementById('setupPassword').value;
+            const shouldSave = document.getElementById('saveProfileCheck').checked;
+
+            if (!newUser || !newPass) {
+                alert('Please enter both username and password!');
+                return;
+            }
+
+            if (shouldSave) {
+                localStorage.setItem('appUsername', newUser);
+                localStorage.setItem('appPassword', newPass);
+                sessionStorage.removeItem('tempUsername');
+                sessionStorage.removeItem('tempPassword');
+                document.getElementById('setupStatus').innerText = 'Profile saved permanently! You can now login.';
+            } else {
+                sessionStorage.setItem('tempUsername', newUser);
+                sessionStorage.setItem('tempPassword', newPass);
+                localStorage.removeItem('appUsername');
+                localStorage.removeItem('appPassword');
+                document.getElementById('setupStatus').innerText = 'Temporary profile created! (Active for this session only)';
+            }
+
+            document.getElementById('setupUsername').value = '';
+            document.getElementById('setupPassword').value = '';
+
+            setTimeout(() => {
+                document.getElementById('setupStatus').innerText = '';
+                showLogin();
+            }, 1500);
         }
 
         function updateCredentials() {
@@ -212,8 +297,12 @@
             if (shouldSave) {
                 localStorage.setItem('appUsername', newUser);
                 localStorage.setItem('appPassword', newPass);
+                sessionStorage.removeItem('tempUsername');
+                sessionStorage.removeItem('tempPassword');
                 document.getElementById('credStatus').innerText = 'Credentials saved permanently!';
             } else {
+                sessionStorage.setItem('tempUsername', newUser);
+                sessionStorage.setItem('tempPassword', newPass);
                 localStorage.removeItem('appUsername');
                 localStorage.removeItem('appPassword');
                 document.getElementById('credStatus').innerText = 'Credentials updated for session only (Not Saved)!';
@@ -225,9 +314,7 @@
 
         function logout() {
             sessionStorage.setItem('isLoggedIn', 'false');
-            document.getElementById('loginCard').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('lockScreen').style.display = 'none';
+            showLogin();
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
             document.getElementById('loginError').innerText = '';
@@ -235,6 +322,7 @@
 
         function showDashboard() {
             document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('setupCard').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
 
             const savedStart = localStorage.getItem('startTime');
