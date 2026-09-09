@@ -38,6 +38,14 @@
             margin: 12px 0;
             text-align: left;
         }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #444;
+            margin: 10px 0;
+        }
         label { font-size: 13px; font-weight: bold; color: #444; }
         input[type="text"], input[type="password"], input[type="time"] {
             width: 100%;
@@ -114,7 +122,6 @@
 
         <button onclick="login()">Login</button>
         <p id="loginError"></p>
-        <p><small>Default: <b id="defaultUserDisplay">admin</b> / Pass: <b id="defaultPassDisplay">1234</b></small></p>
     </div>
 
     <!-- MAIN DASHBOARD -->
@@ -152,6 +159,11 @@
             <input type="password" id="newPassword" placeholder="Enter new password">
         </div>
 
+        <div class="checkbox-group">
+            <input type="checkbox" id="saveCredentialsCheck" checked>
+            <label for="saveCredentialsCheck">Save username and password in browser</label>
+        </div>
+
         <button onclick="updateCredentials()" class="btn-green">Update Credentials</button>
         <p id="credStatus"></p>
 
@@ -163,8 +175,6 @@
 
     <script>
         window.onload = function() {
-            updateDefaultHint();
-            // Force reset login session state on load
             sessionStorage.setItem('isLoggedIn', 'false');
             document.getElementById('loginCard').style.display = 'block';
             document.getElementById('dashboard').style.display = 'none';
@@ -173,17 +183,11 @@
             updateClock();
         };
 
-        function updateDefaultHint() {
-            const storedUser = localStorage.getItem('appUsername') || 'admin';
-            const storedPass = localStorage.getItem('appPassword') || '1234';
-            document.getElementById('defaultUserDisplay').innerText = storedUser;
-            document.getElementById('defaultPassDisplay').innerText = storedPass;
-        }
-
         function login() {
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
 
+            // Fallback credentials if not saved in localStorage
             const validUser = localStorage.getItem('appUsername') || 'admin';
             const validPass = localStorage.getItem('appPassword') || '1234';
 
@@ -198,19 +202,25 @@
         function updateCredentials() {
             const newUser = document.getElementById('newUsername').value;
             const newPass = document.getElementById('newPassword').value;
+            const shouldSave = document.getElementById('saveCredentialsCheck').checked;
 
             if (!newUser || !newPass) {
                 alert('Please enter both new username and password!');
                 return;
             }
 
-            localStorage.setItem('appUsername', newUser);
-            localStorage.setItem('appPassword', newPass);
+            if (shouldSave) {
+                localStorage.setItem('appUsername', newUser);
+                localStorage.setItem('appPassword', newPass);
+                document.getElementById('credStatus').innerText = 'Credentials saved permanently!';
+            } else {
+                localStorage.removeItem('appUsername');
+                localStorage.removeItem('appPassword');
+                document.getElementById('credStatus').innerText = 'Credentials updated for session only (Not Saved)!';
+            }
 
-            document.getElementById('credStatus').innerText = 'Credentials updated successfully!';
             document.getElementById('newUsername').value = '';
             document.getElementById('newPassword').value = '';
-            updateDefaultHint();
         }
 
         function logout() {
@@ -218,7 +228,9 @@
             document.getElementById('loginCard').style.display = 'block';
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('lockScreen').style.display = 'none';
-            updateDefaultHint();
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('loginError').innerText = '';
         }
 
         function showDashboard() {
@@ -242,7 +254,6 @@
             const isLoggedIn = sessionStorage.getItem('isLoggedIn') === 'true';
             const endScheduleTime = localStorage.getItem('endTime');
 
-            // Mag-a-activate LANG ang lock screen kung totoong logged-in ang user sa dashboard
             if (isLoggedIn && endScheduleTime) {
                 const currentMinutes = now.getHours() * 60 + now.getMinutes();
                 const [endHours, endMins] = endScheduleTime.split(':').map(Number);
