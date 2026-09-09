@@ -11,7 +11,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
         .container {
@@ -22,9 +22,17 @@
             text-align: center;
             max-width: 350px;
             width: 90%;
+            position: relative;
         }
-        h1 { font-size: 20px; color: #333; }
+        h1 { font-size: 20px; color: #333; margin-bottom: 5px; }
         p { font-size: 14px; color: #666; }
+        .clock-box {
+            background: #eef2f5;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .clock { font-size: 22px; font-weight: bold; color: #007bff; }
         .input-group {
             margin: 15px 0;
             text-align: left;
@@ -55,13 +63,43 @@
             font-weight: bold;
             color: #28a745;
         }
+        /* Overlay kapag naabot na ang screen time limit */
+        .lock-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(220, 53, 69, 0.95);
+            color: white;
+            z-index: 999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .lock-overlay h2 { font-size: 26px; margin-bottom: 10px; }
+        .lock-overlay p { font-size: 16px; color: #f8f9fa; }
     </style>
 </head>
 <body>
 
+    <!-- Full Screen Lock Message -->
+    <div id="lockScreen" class="lock-overlay">
+        <h2>🔒 Time's Up!</h2>
+        <p>Screen Time Limit Reached.</p>
+        <p>Please take a break and put away your device.</p>
+    </div>
+
     <div class="container">
         <h1>Screen Time Manager</h1>
         <p>Set your daily device schedule.</p>
+
+        <div class="clock-box">
+            <small>Current Time:</small>
+            <div id="currentTime" class="clock">00:00:00</div>
+        </div>
 
         <div class="input-group">
             <label for="startTime">Start Time:</label>
@@ -79,6 +117,30 @@
     </div>
 
     <script>
+        let endScheduleTime = null;
+
+        // Real-time clock checker
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('currentTime').innerText = timeString;
+
+            // Check if limit is reached
+            if (endScheduleTime) {
+                const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                const [endHours, endMins] = endScheduleTime.split(':').map(Number);
+                const endMinutes = endHours * 60 + endMins;
+
+                if (currentMinutes >= endMinutes) {
+                    document.getElementById('lockScreen').style.display = 'flex';
+                } else {
+                    document.getElementById('lockScreen').style.display = 'none';
+                }
+            }
+        }
+
+        setInterval(updateClock, 1000);
+
         function saveSchedule() {
             const start = document.getElementById('startTime').value;
             const end = document.getElementById('endTime').value;
@@ -88,7 +150,9 @@
                 return;
             }
 
-            document.getElementById('status').innerText = `Schedule set from ${start} to ${end}`;
+            endScheduleTime = end;
+            document.getElementById('status').innerText = `Schedule active until ${end}`;
+            updateClock();
         }
     </script>
 
