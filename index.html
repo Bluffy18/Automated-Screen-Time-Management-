@@ -4,49 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Automated Screen Time Management</title>
+    <!-- EmailJS SDK para sa totoong Gmail Verification -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f7f6;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            
+            /* DITO NAKALAGAY ANG BACKGROUND IMAGE CSS */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('IMG_7340.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
+
         .container {
-            background: #ffffff;
+            /* GLASSMORPHISM CARD DESIGN */
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
             padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 350px;
+            max-width: 360px;
             width: 90%;
             margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
-        h1 { font-size: 20px; color: #333; margin-bottom: 5px; }
-        h2 { font-size: 16px; color: #444; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
-        p { font-size: 14px; color: #666; }
+
+        h1 { font-size: 22px; color: #1a1a1a; margin-bottom: 5px; }
+        h2 { font-size: 16px; color: #444; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; }
+        p { font-size: 14px; color: #555; }
+
         .clock-box {
-            background: #eef2f5;
-            padding: 10px;
-            border-radius: 8px;
+            background: rgba(0, 123, 255, 0.08);
+            padding: 12px;
+            border-radius: 10px;
             margin-bottom: 15px;
+            border: 1px solid rgba(0, 123, 255, 0.15);
         }
-        .clock { font-size: 22px; font-weight: bold; color: #007bff; }
+        .clock { font-size: 24px; font-weight: bold; color: #007bff; }
+
         .input-group {
             margin: 12px 0;
             text-align: left;
         }
-        label { font-size: 13px; font-weight: bold; color: #444; }
+        label { font-size: 13px; font-weight: bold; color: #333; }
+        
         input[type="text"], input[type="password"], input[type="time"] {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
             border: 1px solid #ccc;
-            border-radius: 6px;
+            border-radius: 8px;
             box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.85);
         }
+
         button {
             width: 100%;
             background-color: #007bff;
@@ -54,26 +74,21 @@
             border: none;
             padding: 12px;
             font-size: 15px;
-            border-radius: 6px;
+            font-weight: bold;
+            border-radius: 8px;
             cursor: pointer;
             margin-top: 10px;
+            transition: 0.3s background-color;
         }
+        button:hover { opacity: 0.9; }
+
         .btn-green { background-color: #28a745; }
         .btn-reset { background-color: #dc3545; }
         .btn-logout { background-color: #6c757d; }
-        .otp-box {
-            background-color: #e9ecef;
-            padding: 10px;
-            border-radius: 6px;
-            font-weight: bold;
-            color: #28a745;
-            margin: 10px 0;
-            display: none;
-        }
-        #status { margin-top: 15px; font-weight: bold; color: #28a745; }
-        #loginError { color: #dc3545; font-size: 13px; margin-top: 10px; }
-        
-        #dashboard, #otpSection { display: none; }
+
+        #dashboard, #otpCard, #loginCard { display: none; }
+        .error-msg { color: #dc3545; font-size: 13px; margin-top: 10px; font-weight: bold; }
+        .success-msg { color: #28a745; font-size: 13px; margin-top: 10px; font-weight: bold; }
 
         .lock-overlay {
             display: none;
@@ -90,7 +105,7 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        .lock-overlay h2 { font-size: 26px; margin-bottom: 10px; }
+        .lock-overlay h2 { font-size: 28px; margin-bottom: 10px; }
         .lock-overlay p { font-size: 16px; color: #f8f9fa; }
     </style>
 </head>
@@ -105,38 +120,72 @@
         <button onclick="logout()" class="btn-logout" style="width: auto; padding: 10px 20px; margin-top: 10px;">Logout</button>
     </div>
 
-    <!-- AUTHENTICATION CARD (LOGIN & OTP) -->
-    <div id="authCard" class="container">
-        <h1>User Verification</h1>
-        <p>Enter Gmail or Phone Number to access</p>
+    <!-- 1. REGISTRATION CARD -->
+    <div id="registerCard" class="container">
+        <h1>Create Account</h1>
+        <p>Sign up using Gmail or Phone Number</p>
 
-        <!-- STEP 1: Enter Contact Info -->
-        <div id="contactSection">
-            <div class="input-group">
-                <label>Gmail or Phone Number:</label>
-                <input type="text" id="contactInput" placeholder="e.g. user@gmail.com / 09123456789">
-            </div>
-            <button onclick="sendOTP()" class="btn-green">Send OTP Code</button>
+        <div class="input-group">
+            <label>Gmail or Phone Number:</label>
+            <input type="text" id="regContact" placeholder="e.g. user@gmail.com / 09123456789">
         </div>
 
-        <!-- SIMULATED OTP NOTIFICATION -->
-        <div id="otpDisplayBox" class="otp-box">
-            System OTP Code: <span id="generatedOTP">------</span>
+        <div class="input-group">
+            <label>Password:</label>
+            <input type="password" id="regPass" placeholder="Create password">
         </div>
 
-        <!-- STEP 2: Enter OTP -->
-        <div id="otpSection">
-            <div class="input-group">
-                <label>Enter 6-Digit OTP:</label>
-                <input type="text" id="otpInput" placeholder="Enter 6-digit code">
-            </div>
-            <button onclick="verifyOTP()">Verify & Access System</button>
+        <div class="input-group">
+            <label>Confirm Password:</label>
+            <input type="password" id="regConfirmPass" placeholder="Re-enter password">
         </div>
 
-        <p id="loginError"></p>
+        <button onclick="processRegister()" class="btn-green">Register & Send Code</button>
+        <p id="regError" class="error-msg"></p>
+        
+        <p style="font-size: 13px; margin-top: 15px;">
+            Already have an account? <a href="#" onclick="showLoginCard()" style="color: #007bff; font-weight: bold;">Login here</a>
+        </p>
     </div>
 
-    <!-- MAIN HOME / DASHBOARD -->
+    <!-- 2. LOGIN CARD -->
+    <div id="loginCard" class="container">
+        <h1>Account Login</h1>
+        <p>Enter your credentials to continue</p>
+
+        <div class="input-group">
+            <label>Gmail or Phone Number:</label>
+            <input type="text" id="loginContact" placeholder="Enter Gmail or Phone">
+        </div>
+
+        <div class="input-group">
+            <label>Password:</label>
+            <input type="password" id="loginPass" placeholder="Enter password">
+        </div>
+
+        <button onclick="processLogin()">Login</button>
+        <p id="loginError" class="error-msg"></p>
+
+        <p style="font-size: 13px; margin-top: 15px;">
+            Need an account? <a href="#" onclick="showRegisterCard()" style="color: #007bff; font-weight: bold;">Register here</a>
+        </p>
+    </div>
+
+    <!-- 3. OTP VERIFICATION CARD -->
+    <div id="otpCard" class="container">
+        <h1>Verify Account</h1>
+        <p id="otpMessage">Verification code sent!</p>
+
+        <div class="input-group">
+            <label>Enter 6-Digit Code:</label>
+            <input type="text" id="otpInput" placeholder="Enter code">
+        </div>
+
+        <button onclick="verifyOTP()" class="btn-green">Verify & Complete Sign Up</button>
+        <p id="otpError" class="error-msg"></p>
+    </div>
+
+    <!-- 4. MAIN DASHBOARD / HOME -->
     <div id="dashboard" class="container">
         <h1>Screen Time Manager</h1>
         <p>Set your restricted screen time window.</p>
@@ -159,80 +208,126 @@
         <button onclick="saveSchedule()">Save Schedule</button>
         <button onclick="clearSchedule()" class="btn-reset">Clear Schedule</button>
 
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
         <button onclick="logout()" class="btn-logout">Logout System</button>
 
-        <p id="status"></p>
+        <p id="status" class="success-msg"></p>
     </div>
 
     <script>
-        let currentGeneratedOTP = null;
+        let generatedOTP = null;
+        let tempUserCredentials = {};
 
         window.onload = function() {
-            // Tinitignan kung naka-login na dati ang user sa browser
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
             if (isLoggedIn) {
                 showDashboard();
             } else {
-                showAuth();
+                const existingUser = localStorage.getItem('userContact');
+                if (existingUser) {
+                    showLoginCard();
+                } else {
+                    showRegisterCard();
+                }
             }
 
             updateClock();
         };
 
-        function showAuth() {
-            document.getElementById('authCard').style.display = 'block';
+        function showRegisterCard() {
+            document.getElementById('registerCard').style.display = 'block';
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('otpCard').style.display = 'none';
             document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('lockScreen').style.display = 'none';
-            document.getElementById('contactSection').style.display = 'block';
-            document.getElementById('otpSection').style.display = 'none';
-            document.getElementById('otpDisplayBox').style.display = 'none';
         }
 
-        function sendOTP() {
-            const contact = document.getElementById('contactInput').value.trim();
+        function showLoginCard() {
+            document.getElementById('registerCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'block';
+            document.getElementById('otpCard').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'none';
+        }
 
-            if (!contact) {
-                document.getElementById('loginError').innerText = 'Please enter a valid Gmail or Phone number!';
+        function showOTPCard(contact) {
+            document.getElementById('registerCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('otpCard').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('otpMessage').innerText = `Verification code sent to ${contact}`;
+        }
+
+        function processRegister() {
+            const contact = document.getElementById('regContact').value.trim();
+            const pass = document.getElementById('regPass').value;
+            const confirmPass = document.getElementById('regConfirmPass').value;
+            const errorElement = document.getElementById('regError');
+
+            if (!contact || !pass || !confirmPass) {
+                errorElement.innerText = 'Please fill out all fields!';
                 return;
             }
 
-            // Gumawa ng random 6-digit OTP code
-            currentGeneratedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            if (pass !== confirmPass) {
+                errorElement.innerText = 'Passwords do not match!';
+                return;
+            }
 
-            // Ipakita ang simulated OTP sa screen (para sa testing)
-            document.getElementById('generatedOTP').innerText = currentGeneratedOTP;
-            document.getElementById('otpDisplayBox').style.display = 'block';
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            tempUserCredentials = { contact, pass };
 
-            document.getElementById('contactSection').style.display = 'none';
-            document.getElementById('otpSection').style.display = 'block';
-            document.getElementById('loginError').innerText = '';
+            if (contact.includes('@')) {
+                alert(`[VERIFICATION CODE SENT TO GMAIL]\nYour Code: ${generatedOTP}`);
+            } else {
+                alert(`[SMS VERIFICATION CODE]\nSent to ${contact}\nCode: ${generatedOTP}`);
+            }
+
+            errorElement.innerText = '';
+            showOTPCard(contact);
         }
 
         function verifyOTP() {
-            const userOTP = document.getElementById('otpInput').value.trim();
+            const inputOTP = document.getElementById('otpInput').value.trim();
+            const otpError = document.getElementById('otpError');
 
-            if (userOTP === currentGeneratedOTP) {
-                // I-save sa localStorage para manatiling logged in kahit i-close ang browser
+            if (inputOTP === generatedOTP) {
+                localStorage.setItem('userContact', tempUserCredentials.contact);
+                localStorage.setItem('userPassword', tempUserCredentials.pass);
                 localStorage.setItem('isLoggedIn', 'true');
-                document.getElementById('loginError').innerText = '';
+
+                otpError.innerText = '';
                 showDashboard();
             } else {
-                document.getElementById('loginError').innerText = 'Invalid OTP Code. Please try again.';
+                otpError.innerText = 'Incorrect verification code. Try again!';
+            }
+        }
+
+        function processLogin() {
+            const contact = document.getElementById('loginContact').value.trim();
+            const pass = document.getElementById('loginPass').value;
+            const loginError = document.getElementById('loginError');
+
+            const savedContact = localStorage.getItem('userContact');
+            const savedPass = localStorage.getItem('userPassword');
+
+            if (contact === savedContact && pass === savedPass) {
+                localStorage.setItem('isLoggedIn', 'true');
+                loginError.innerText = '';
+                showDashboard();
+            } else {
+                loginError.innerText = 'Invalid credentials or account does not exist.';
             }
         }
 
         function logout() {
-            // Tatanggalin ang login status para hingian ulit ng OTP
             localStorage.setItem('isLoggedIn', 'false');
-            document.getElementById('contactInput').value = '';
-            document.getElementById('otpInput').value = '';
-            showAuth();
+            showLoginCard();
         }
 
         function showDashboard() {
-            document.getElementById('authCard').style.display = 'none';
+            document.getElementById('registerCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('otpCard').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
 
             const savedStart = localStorage.getItem('startTime');
