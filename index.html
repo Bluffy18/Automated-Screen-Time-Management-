@@ -152,7 +152,7 @@
         .btn-secondary { background-color: #6c757d; }
         .btn-sm { padding: 4px 8px; font-size: 11px; width: auto; margin: 2px; }
 
-        #dashboard, #otpCard, #loginCard, #adminPanel, #userProfileCard, #resetPassCard, #modApprovalCard { display: none; }
+        #dashboard, #otpCard, #loginCard, #adminPanel, #userProfileCard, #resetPassCard, #screenTimeCard { display: none; }
         .error-msg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; }
         .success-msg { color: #28a745; font-size: 12px; margin-top: 8px; font-weight: bold; }
 
@@ -184,7 +184,7 @@
             cursor: pointer;
         }
 
-        /* ADMIN & USER TABS */
+        /* NAVIGATION TABS */
         .nav-tabs {
             display: flex;
             gap: 4px;
@@ -285,9 +285,30 @@
             margin-bottom: 10px;
             font-size: 12px;
         }
+
+        /* LOCK SCREEN OVERLAY */
+        #lockScreenOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000;
+            color: #fff;
+            z-index: 99999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+
+    <!-- SCREEN LOCK OVERLAY -->
+    <div id="lockScreenOverlay">
+        <h1>🔒 SCREEN LOCKED</h1>
+        <p>Screen time limit reached or system auto-locked.</p>
+        <button onclick="unlockScreenSystem()" style="width:auto; padding:10px 20px;" class="btn-green">Unlock System</button>
+    </div>
 
     <div class="top-nav">
         <button class="profile-menu-btn" onclick="toggleDropdown()">
@@ -296,6 +317,7 @@
         <div id="dropdownMenu" class="dropdown-menu">
             <button onclick="showLoginCard()">👤 Login</button>
             <button onclick="openUserProfile()">⚙️ User Profile</button>
+            <button onclick="openScreenTimeCard()">⏳ Screen Time Control</button>
             <button onclick="openAdminCheck()">🛡️ Admin Dashboard</button>
         </div>
     </div>
@@ -347,14 +369,37 @@
         </div>
 
         <button onclick="processLogin()">Login</button>
-        
-        <p style="text-align: right; margin-top: 5px;">
-            <a href="#" onclick="showForgotPasswordCard()" style="color: #dc3545; font-size: 12px;">Forgot Password?</a>
-        </p>
         <p id="loginError" class="error-msg"></p>
     </div>
 
-    <!-- 3. USER PROFILE DASHBOARD (WITH EDITABLE PFP/COVER & FORM) -->
+    <!-- 3. AUTOMATED SCREEN TIME & POWER CONTROLS CARD -->
+    <div id="screenTimeCard" class="container">
+        <h1>⏱️ Screen Time & Power Controls</h1>
+        <p>Schedule automatic power off and lock screen timers.</p>
+
+        <div class="input-group">
+            <label>Scheduled Power Off Time:</label>
+            <input type="time" id="powerOffTime">
+        </div>
+        <div class="input-group">
+            <label>Scheduled Power On Time:</label>
+            <input type="time" id="powerOnTime">
+        </div>
+        <button onclick="savePowerSchedule()" class="btn-green">Save Power Schedule</button>
+
+        <hr style="margin: 15px 0; border:0; border-top:1px solid var(--border-color);">
+
+        <div class="input-group">
+            <label>Screen Timeout Lock (Minutes):</label>
+            <input type="number" id="screenTimeoutMin" placeholder="e.g. 5">
+        </div>
+        <button onclick="startScreenTimer()" class="btn-secondary">Start Screen Lock Timer</button>
+        <button onclick="lockScreenNow()" class="btn-reset" style="margin-top:5px;">Lock Screen Immediately</button>
+
+        <p id="timerStatus" style="font-size:12px; font-weight:bold; margin-top:10px; color:#007bff;"></p>
+    </div>
+
+    <!-- 4. USER PROFILE DASHBOARD (WITH MEDIA & TABS) -->
     <div id="userProfileCard" class="container" style="padding-top:0;">
         <div class="cover-photo" id="userCoverBox" onclick="viewFullImage('userCover')">
             <div class="profile-img-container">
@@ -433,15 +478,13 @@
             <button onclick="submitUserReport()" class="btn-green">Submit Report</button>
 
             <h4 style="margin-top:15px; font-size:12px;">Admin Responses to Your Reports:</h4>
-            <div id="uReportResponses" style="max-height:150px; overflow-y:auto;">
-                <!-- Responses dynamically load here -->
-            </div>
+            <div id="uReportResponses" style="max-height:150px; overflow-y:auto;"></div>
         </div>
 
         <button onclick="logout()" class="btn-logout" style="margin-top:15px;">Logout</button>
     </div>
 
-    <!-- 4. OTP CARD -->
+    <!-- 5. OTP CARD -->
     <div id="otpCard" class="container">
         <h1>Verify Account</h1>
         <p id="otpMessage">Code sent!</p>
@@ -449,14 +492,6 @@
             <input type="text" id="otpInput" placeholder="Enter 6-Digit Code">
         </div>
         <button onclick="verifyOTP()" class="btn-green">Verify & Complete Signup</button>
-    </div>
-
-    <!-- 5. MAIN USER DASHBOARD (SCREEN TIME / SYSTEM) -->
-    <div id="dashboard" class="container">
-        <h1>Dashboard System</h1>
-        <p>Welcome back! Management console is active.</p>
-        <button onclick="openUserProfile()" class="btn-secondary">Go to My User Profile</button>
-        <button onclick="logout()" class="btn-logout" style="margin-top:10px;">Logout</button>
     </div>
 
     <!-- 6. ADMIN DASHBOARD PANEL -->
@@ -485,9 +520,7 @@
         <!-- TAB 1: REPORTS & FEEDBACK (ADMIN RESPONSE) -->
         <div id="atab-reports" class="tab-content active">
             <h3 style="font-size:13px; color:#007bff; margin:5px 0;">User Messages & Reports</h3>
-            <div id="adminReportsList" style="max-height:250px; overflow-y:auto;">
-                <!-- Dynamically loaded user reports and reply forms -->
-            </div>
+            <div id="adminReportsList" style="max-height:250px; overflow-y:auto;"></div>
         </div>
 
         <!-- TAB 2: MODERATORS -->
@@ -552,8 +585,9 @@
 
         let generatedOTP = null;
         let tempUserCredentials = {};
-        let activeTargetScope = 'user'; // 'user' or 'admin'
+        let activeTargetScope = 'user'; 
         let currentEditingMedia = 'profile'; 
+        let screenLockTimer = null;
 
         const ADMIN_GMAIL = "johnreypelaezoliva@gmail.com";
         const ADMIN_PASS = "@adminjohnrey202006";
@@ -576,6 +610,7 @@
             loadMediaDisplays();
             loadUserProfileData();
             loadAdminReports();
+            startPowerScheduleCheck();
         };
 
         function toggleThemeMode(mode) {
@@ -592,14 +627,15 @@
             document.getElementById('registerCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('otpCard').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('userProfileCard').style.display = 'none';
+            document.getElementById('screenTimeCard').style.display = 'none';
             document.getElementById('dropdownMenu').style.display = 'none';
         }
 
         function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
         function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
+        function openScreenTimeCard() { hideAllCards(); document.getElementById('screenTimeCard').style.display = 'block'; }
 
         function openUserProfile() {
             hideAllCards();
@@ -639,7 +675,55 @@
             event.currentTarget.classList.add('active');
         }
 
-        /* MEDIA HANDLING (PROFILE & COVER) */
+        /* AUTOMATED SCREEN TIME & POWER SCHEDULE CONTROLS */
+        function savePowerSchedule() {
+            const offTime = document.getElementById('powerOffTime').value;
+            const onTime = document.getElementById('powerOnTime').value;
+
+            localStorage.setItem('schedPowerOff', offTime);
+            localStorage.setItem('schedPowerOn', onTime);
+            alert("Power Schedule Saved!");
+        }
+
+        function startPowerScheduleCheck() {
+            setInterval(() => {
+                const now = new Date();
+                const currentTime = now.toTimeString().substring(0, 5);
+
+                const offTime = localStorage.getItem('schedPowerOff');
+                const onTime = localStorage.getItem('schedPowerOn');
+
+                if (offTime && currentTime === offTime) {
+                    lockScreenNow();
+                }
+                if (onTime && currentTime === onTime) {
+                    unlockScreenSystem();
+                }
+            }, 10000);
+        }
+
+        function startScreenTimer() {
+            const mins = parseInt(document.getElementById('screenTimeoutMin').value);
+            if (!mins || mins <= 0) { alert("Enter valid minutes!"); return; }
+
+            if (screenLockTimer) clearTimeout(screenLockTimer);
+            document.getElementById('timerStatus').innerText = `Screen will lock in ${mins} minute(s).`;
+
+            screenLockTimer = setTimeout(() => {
+                lockScreenNow();
+            }, mins * 60 * 1000);
+        }
+
+        function lockScreenNow() {
+            document.getElementById('lockScreenOverlay').style.display = 'flex';
+        }
+
+        function unlockScreenSystem() {
+            document.getElementById('lockScreenOverlay').style.display = 'none';
+            document.getElementById('timerStatus').innerText = "System Unlocked.";
+        }
+
+        /* MEDIA HANDLING */
         function openMediaSelectorModal(scope) {
             activeTargetScope = scope;
             document.getElementById('typeSelectorModal').style.display = 'flex';
@@ -720,7 +804,7 @@
 
         function closeFullView() { document.getElementById('fullViewModal').style.display = 'none'; }
 
-        /* USER PROFILE DATA MANAGEMENT */
+        /* USER PROFILE DATA */
         function calculateAge() {
             const dob = document.getElementById('uBirthDate').value;
             if (dob) {
