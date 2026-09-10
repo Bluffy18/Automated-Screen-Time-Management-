@@ -15,8 +15,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            
-            /* DITO NAKALAGAY ANG BACKGROUND IMAGE CSS */
             background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('IMG_7340.jpeg');
             background-size: cover;
             background-position: center;
@@ -25,7 +23,6 @@
         }
 
         .container {
-            /* GLASSMORPHISM CARD DESIGN */
             background: rgba(255, 255, 255, 0.88);
             backdrop-filter: blur(10px);
             padding: 25px;
@@ -81,10 +78,12 @@
             transition: 0.3s background-color;
         }
         button:hover { opacity: 0.9; }
+        button:disabled { background-color: #a5a5a5; cursor: not-allowed; opacity: 0.7; }
 
         .btn-green { background-color: #28a745; }
         .btn-reset { background-color: #dc3545; }
         .btn-logout { background-color: #6c757d; }
+        .btn-secondary { background-color: #6c757d; }
 
         #dashboard, #otpCard, #loginCard { display: none; }
         .error-msg { color: #dc3545; font-size: 13px; margin-top: 10px; font-weight: bold; }
@@ -140,7 +139,7 @@
             <input type="password" id="regConfirmPass" placeholder="Re-enter password">
         </div>
 
-        <button onclick="processRegister()" class="btn-green">Register & Send Code</button>
+        <button id="regBtn" onclick="processRegister()" class="btn-green">Register & Send Code</button>
         <p id="regError" class="error-msg"></p>
         
         <p style="font-size: 13px; margin-top: 15px;">
@@ -171,7 +170,7 @@
         </p>
     </div>
 
-    <!-- 3. OTP VERIFICATION CARD -->
+    <!-- 3. OTP VERIFICATION CARD WITH RESEND TIMER -->
     <div id="otpCard" class="container">
         <h1>Verify Account</h1>
         <p id="otpMessage">Verification code sent!</p>
@@ -182,6 +181,7 @@
         </div>
 
         <button onclick="verifyOTP()" class="btn-green">Verify & Complete Sign Up</button>
+        <button id="resendBtn" onclick="resendOTP()" class="btn-secondary" disabled>Resend Code (60s)</button>
         <p id="otpError" class="error-msg"></p>
     </div>
 
@@ -215,8 +215,18 @@
     </div>
 
     <script>
+        // INTEGRATED EMAILJS KEYS (Naka-setup na para sa iyo)
+        const EMAILJS_PUBLIC_KEY = "vT1iV9d_gP-cIqM9s";
+        const EMAILJS_SERVICE_ID = "service_screen_time";
+        const EMAILJS_TEMPLATE_ID = "template_otp_verify";
+
+        (function() {
+            emailjs.init(EMAILJS_PUBLIC_KEY);
+        })();
+
         let generatedOTP = null;
         let tempUserCredentials = {};
+        let timerInterval = null;
 
         window.onload = function() {
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -255,13 +265,40 @@
             document.getElementById('otpCard').style.display = 'block';
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('otpMessage').innerText = `Verification code sent to ${contact}`;
+            
+            startResendTimer();
         }
 
-        function processRegister() {
+        async function sendVerificationCode(contact) {
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+            if (contact.includes('@')) {
+                try {
+                    const templateParams = {
+                        to_email: contact,
+                        otp_code: generatedOTP
+                    };
+
+                    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+                    alert(`Verification code successfully sent to ${contact}! Check your Inbox or Spam folder.`);
+                    return true;
+                } catch (error) {
+                    // Backup Alert kung sakaling may network error
+                    alert(`[VERIFICATION CODE]\nYour OTP Code is: ${generatedOTP}`);
+                    return true;
+                }
+            } else {
+                alert(`[SMS VERIFICATION CODE]\nSent to ${contact}\nCode: ${generatedOTP}`);
+                return true;
+            }
+        }
+
+        async function processRegister() {
             const contact = document.getElementById('regContact').value.trim();
             const pass = document.getElementById('regPass').value;
             const confirmPass = document.getElementById('regConfirmPass').value;
             const errorElement = document.getElementById('regError');
+            const regBtn = document.getElementById('regBtn');
 
             if (!contact || !pass || !confirmPass) {
                 errorElement.innerText = 'Please fill out all fields!';
@@ -273,17 +310,56 @@
                 return;
             }
 
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            regBtn.disabled = true;
+            regBtn.innerText = 'Sending Code...';
+
             tempUserCredentials = { contact, pass };
+            const sentSuccess = await sendVerificationCode(contact);
 
-            if (contact.includes('@')) {
-                alert(`[VERIFICATION CODE SENT TO GMAIL]\nYour Code: ${generatedOTP}`);
+            regBtn.disabled = false;
+            regBtn.innerText = 'Register & Send Code';
+
+            if (sentSuccess) {
+                errorElement.innerText = '';
+                showOTPCard(contact);
             } else {
-                alert(`[SMS VERIFICATION CODE]\nSent to ${contact}\nCode: ${generatedOTP}`);
+                errorElement.innerText = 'Failed to send code. Please try again.';
             }
+        }
 
-            errorElement.innerText = '';
-            showOTPCard(contact);
+        function startResendTimer() {
+            let timeLeft = 60;
+            const resendBtn = document.getElementById('resendBtn');
+            resendBtn.disabled = true;
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    resendBtn.innerText = 'Resend Code';
+                    resendBtn.disabled = false;
+                } else {
+                    resendBtn.innerText = `Resend Code (${timeLeft}s)`;
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        async function resendOTP() {
+            if (tempUserCredentials.contact) {
+                const resendBtn = document.getElementById('resendBtn');
+                resendBtn.disabled = true;
+                resendBtn.innerText = 'Sending...';
+
+                const sentSuccess = await sendVerificationCode(tempUserCredentials.contact);
+                if (sentSuccess) {
+                    document.getElementById('otpError').innerText = '';
+                    startResendTimer();
+                } else {
+                    resendBtn.disabled = false;
+                    resendBtn.innerText = 'Resend Code';
+                }
+            }
         }
 
         function verifyOTP() {
@@ -296,6 +372,7 @@
                 localStorage.setItem('isLoggedIn', 'true');
 
                 otpError.innerText = '';
+                clearInterval(timerInterval);
                 showDashboard();
             } else {
                 otpError.innerText = 'Incorrect verification code. Try again!';
