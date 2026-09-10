@@ -125,8 +125,8 @@
         <p>Sign up using Gmail or Phone Number</p>
 
         <div class="input-group">
-            <label>Gmail or Phone Number:</label>
-            <input type="text" id="regContact" placeholder="e.g. user@gmail.com / 09123456789">
+            <label>Gmail Address:</label>
+            <input type="text" id="regContact" placeholder="e.g. user@gmail.com">
         </div>
 
         <div class="input-group">
@@ -153,8 +153,8 @@
         <p>Enter your credentials to continue</p>
 
         <div class="input-group">
-            <label>Gmail or Phone Number:</label>
-            <input type="text" id="loginContact" placeholder="Enter Gmail or Phone">
+            <label>Gmail Address:</label>
+            <input type="text" id="loginContact" placeholder="Enter Gmail">
         </div>
 
         <div class="input-group">
@@ -170,7 +170,7 @@
         </p>
     </div>
 
-    <!-- 3. OTP VERIFICATION CARD WITH RESEND TIMER -->
+    <!-- 3. OTP VERIFICATION CARD -->
     <div id="otpCard" class="container">
         <h1>Verify Account</h1>
         <p id="otpMessage">Verification code sent!</p>
@@ -185,7 +185,7 @@
         <p id="otpError" class="error-msg"></p>
     </div>
 
-    <!-- 4. MAIN DASHBOARD / HOME -->
+    <!-- 4. MAIN DASHBOARD -->
     <div id="dashboard" class="container">
         <h1>Screen Time Manager</h1>
         <p>Set your restricted screen time window.</p>
@@ -215,13 +215,18 @@
     </div>
 
     <script>
-        // INTEGRATED EMAILJS KEYS (Naka-setup na para sa iyo)
-        const EMAILJS_PUBLIC_KEY = "vT1iV9d_gP-cIqM9s";
-        const EMAILJS_SERVICE_ID = "service_screen_time";
-        const EMAILJS_TEMPLATE_ID = "template_otp_verify";
+        // =========================================================
+        // DITO MO IPA-PASTE ANG NAKUHA MONG 3 KEYS MULA SA EMAILJS:
+        // =========================================================
+        const EMAILJS_PUBLIC_KEY = "2PV1h2_hDzWgqxmT4"; 
+        const EMAILJS_SERVICE_ID = "service_jrpo2006"; 
+        const EMAILJS_TEMPLATE_ID = "template_g6rial5"; 
+        // =========================================================
 
         (function() {
-            emailjs.init(EMAILJS_PUBLIC_KEY);
+            if (EMAILJS_PUBLIC_KEY !== "I-PASTE_ANG_PUBLIC_KEY_DITO") {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+            }
         })();
 
         let generatedOTP = null;
@@ -272,24 +277,18 @@
         async function sendVerificationCode(contact) {
             generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
 
-            if (contact.includes('@')) {
-                try {
-                    const templateParams = {
-                        to_email: contact,
-                        otp_code: generatedOTP
-                    };
+            try {
+                const templateParams = {
+                    to_email: contact,
+                    otp_code: generatedOTP
+                };
 
-                    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                    alert(`Verification code successfully sent to ${contact}! Check your Inbox or Spam folder.`);
-                    return true;
-                } catch (error) {
-                    // Backup Alert kung sakaling may network error
-                    alert(`[VERIFICATION CODE]\nYour OTP Code is: ${generatedOTP}`);
-                    return true;
-                }
-            } else {
-                alert(`[SMS VERIFICATION CODE]\nSent to ${contact}\nCode: ${generatedOTP}`);
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
                 return true;
+            } catch (error) {
+                console.error("EmailJS Error:", error);
+                alert("Failed to send email. Check your EmailJS keys or internet connection.");
+                return false;
             }
         }
 
@@ -302,6 +301,11 @@
 
             if (!contact || !pass || !confirmPass) {
                 errorElement.innerText = 'Please fill out all fields!';
+                return;
+            }
+
+            if (!contact.includes('@')) {
+                errorElement.innerText = 'Please enter a valid Gmail address!';
                 return;
             }
 
