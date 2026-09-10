@@ -445,7 +445,7 @@
             <small id="adminRoleDisplay">Administrator (System Owner)</small>
             
             <div style="margin-top: 8px;">
-                <button onclick="openProfileEditModal()" style="font-size: 11px; padding: 5px 12px; width: auto; background: #6c757d;">✏️ Edit Profile Media</button>
+                <button onclick="openMediaSelectorModal()" style="font-size: 11px; padding: 5px 12px; width: auto; background: #6c757d;">✏️ Edit Profile Media</button>
             </div>
         </div>
 
@@ -535,25 +535,34 @@
         <button onclick="logout()" class="btn-logout" style="margin-top: 15px;">Exit Admin Panel</button>
     </div>
 
-    <!-- MODAL POPUP FOR CAMERA/GALLERY/FILES CHOICE -->
-    <div id="mediaModal" class="modal-overlay">
+    <!-- STEP 1: MODAL TO CHOOSE WHICH MEDIA TO EDIT (PROFILE OR COVER) -->
+    <div id="typeSelectorModal" class="modal-overlay">
         <div class="modal-box">
-            <h3 style="margin-top:0; font-size:16px;">Select Photo Source</h3>
-            <p id="mediaTargetText" style="font-size:12px; color:#666;">Choose source for Profile Picture</p>
+            <h3 style="margin-top:0; font-size:16px;">Edit Media</h3>
+            <p style="font-size:12px; color:#666;">Choose what you want to update:</p>
+
+            <button onclick="selectMediaType('profile')" style="background:#007bff;">🖼️ Select Profile Photo</button>
+            <button onclick="selectMediaType('cover')" style="background:#17a2b8;">🖼️ Select Cover Photo</button>
+            <button onclick="closeModal('typeSelectorModal')" class="btn-reset" style="margin-top:10px;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- STEP 2: MODAL TO CHOOSE CAMERA/GALLERY/FILES -->
+    <div id="sourceSelectorModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0; font-size:16px;" id="sourceModalTitle">Select Photo Source</h3>
+            <p id="sourceModalSub" style="font-size:12px; color:#666;">Choose where to get the photo:</p>
             
             <button onclick="triggerFileInput('gallery')" style="background:#28a745;">🖼️ Photo Gallery</button>
             <button onclick="triggerFileInput('camera')" style="background:#007bff;">📷 Take Photo (Camera)</button>
             <button onclick="triggerFileInput('files')" style="background:#6c757d;">📁 File Manager</button>
-            <button onclick="closeProfileEditModal()" class="btn-reset" style="margin-top:10px;">Cancel</button>
+            <button onclick="closeModal('sourceSelectorModal')" class="btn-reset" style="margin-top:10px;">Cancel</button>
         </div>
     </div>
 
     <!-- HIDDEN NATIVE FILE INPUTS WITH PERMISSIONS -->
-    <!-- Photo Gallery / Storage Access -->
     <input type="file" id="inputGallery" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-    <!-- Direct Camera Access -->
     <input type="file" id="inputCamera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(event)">
-    <!-- File Storage Access -->
     <input type="file" id="inputFiles" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
 
     <script>
@@ -654,24 +663,32 @@
             event.currentTarget.classList.add('active');
         }
 
-        // PROFILE EDIT MODAL & FILE PICKING WITH DEVICE PERMISSIONS
-        function openProfileEditModal() {
-            const choice = confirm("Press OK to update PROFILE PHOTO, or press CANCEL to update COVER PHOTO.");
-            currentEditingMedia = choice ? 'profile' : 'cover';
-            
-            document.getElementById('mediaTargetText').innerText = choice 
-                ? "Updating Profile Picture (Select Source):" 
-                : "Updating Cover Photo (Select Source):";
-
-            document.getElementById('mediaModal').style.display = 'flex';
+        // CUSTOM MODALS FOR EDITING PROFILE & COVER MEDIA
+        function openMediaSelectorModal() {
+            document.getElementById('typeSelectorModal').style.display = 'flex';
         }
 
-        function closeProfileEditModal() {
-            document.getElementById('mediaModal').style.display = 'none';
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function selectMediaType(type) {
+            currentEditingMedia = type;
+            closeModal('typeSelectorModal');
+
+            if (type === 'profile') {
+                document.getElementById('sourceModalTitle').innerText = "Select Profile Photo";
+                document.getElementById('sourceModalSub').innerText = "Choose source to upload profile picture:";
+            } else {
+                document.getElementById('sourceModalTitle').innerText = "Select Cover Photo";
+                document.getElementById('sourceModalSub').innerText = "Choose source to upload cover picture:";
+            }
+
+            document.getElementById('sourceSelectorModal').style.display = 'flex';
         }
 
         function triggerFileInput(source) {
-            closeProfileEditModal();
+            closeModal('sourceSelectorModal');
             if (source === 'gallery') {
                 document.getElementById('inputGallery').click();
             } else if (source === 'camera') {
@@ -694,7 +711,7 @@
                         localStorage.setItem('adminCover', imageData);
                         document.getElementById('coverPhotoBox').style.backgroundImage = `url('${imageData}')`;
                     }
-                    alert("Image updated successfully!");
+                    alert(`${currentEditingMedia === 'profile' ? 'Profile Photo' : 'Cover Photo'} updated successfully!`);
                 };
                 reader.readAsDataURL(file);
             }
@@ -1078,7 +1095,7 @@
         }
 
         function checkSystemStatus() {
-            document.getElementById('diagResult').innerText = "Diagnostics Complete:\nMemory Check: OK\nDatabase: Secure\nSpam Counter: 0\nVersion: 3.0 Cleaned";
+            document.getElementById('diagResult').innerText = "Diagnostics Complete:\nMemory Check: OK\nDatabase: Secure\nSpam Counter: 0\nVersion: 3.1 Custom Selector";
         }
 
         function triggerSecurityPurge() {
