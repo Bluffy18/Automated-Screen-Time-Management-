@@ -26,7 +26,6 @@
             background-attachment: fixed;
         }
 
-        /* Top Bar Navigation (Upper Right Profile Menu) */
         .top-nav {
             position: fixed;
             top: 15px;
@@ -136,12 +135,12 @@
         .btn-reset { background-color: #dc3545; }
         .btn-logout { background-color: #6c757d; }
         .btn-secondary { background-color: #6c757d; }
+        .btn-sm { padding: 5px 10px; font-size: 11px; width: auto; margin: 2px; }
 
-        #dashboard, #otpCard, #loginCard, #adminPanel, #resetPassCard { display: none; }
+        #dashboard, #otpCard, #loginCard, #adminPanel, #resetPassCard, #modApprovalCard { display: none; }
         .error-msg { color: #dc3545; font-size: 13px; margin-top: 10px; font-weight: bold; }
         .success-msg { color: #28a745; font-size: 13px; margin-top: 10px; font-weight: bold; }
 
-        /* STRICT LOCK SCREEN OVERLAY */
         .lock-overlay {
             display: none;
             position: fixed;
@@ -160,7 +159,6 @@
         .lock-overlay h2 { font-size: 32px; margin-bottom: 20px; border: none; color: #ffffff; }
         .lock-overlay p { font-size: 20px; color: #ffffff; line-height: 1.5; max-width: 400px; font-weight: 500; }
 
-        /* ADMIN PROFILE STYLES */
         .cover-photo {
             width: 100%;
             height: 120px;
@@ -269,7 +267,7 @@
             <label>Select Role:</label>
             <select id="loginRole">
                 <option value="User">User</option>
-                <option value="Coordinator">Coordinator</option>
+                <option value="Moderator">Moderator</option>
                 <option value="Admin">Admin</option>
             </select>
         </div>
@@ -342,7 +340,16 @@
         <p id="otpError" class="error-msg"></p>
     </div>
 
-    <!-- 5. MAIN USER DASHBOARD -->
+    <!-- 5. MODERATOR APPROVAL PERMISSION CARD -->
+    <div id="modApprovalCard" class="container">
+        <h1>Moderator Request</h1>
+        <p>Your OTP is verified! Click below to request approval from System Admin.</p>
+        <button id="reqApproveBtn" onclick="requestModeratorApproval()" class="btn-green">Request Approval</button>
+        <p id="modReqStatus" class="success-msg"></p>
+        <button onclick="logout()" class="btn-logout" style="margin-top:10px;">Back to Login</button>
+    </div>
+
+    <!-- 6. MAIN USER DASHBOARD -->
     <div id="dashboard" class="container">
         <h1>Screen Time Manager</h1>
         <p>Set your restricted screen time window.</p>
@@ -371,7 +378,7 @@
         <p id="status" class="success-msg"></p>
     </div>
 
-    <!-- 6. EXCLUSIVE ADMIN PROFILE PANEL -->
+    <!-- 7. EXCLUSIVE ADMIN PROFILE PANEL -->
     <div id="adminPanel" class="container" style="padding-top: 0; max-width: 450px;">
         <div class="cover-photo" id="coverPhotoBox">
             <img src="https://via.placeholder.com/80" id="profileImgPic" class="profile-img">
@@ -381,7 +388,31 @@
             <small id="adminRoleDisplay">Administrator (System Owner)</small>
         </div>
 
-        <!-- 1. EARNINGS & GCASH CASHOUT SECTION -->
+        <!-- 1. MODERATOR MANAGEMENT SELECTION CONTENT BUTTON -->
+        <div class="admin-section">
+            <h3>🔰 Moderator Management</h3>
+            <button onclick="toggleModChoices()" style="background:#6f42c1; color:white;">🛡️ Manage Moderators</button>
+            
+            <div id="modChoicesBox" style="display:none; margin-top:10px; background:#fff; padding:10px; border-radius:8px; border:1px solid #ccc;">
+                <h4 style="margin:0 0 5px 0; font-size:12px;">Pending Moderator Requests</h4>
+                <div style="max-height: 150px; overflow-y: auto;">
+                    <table class="logs-table">
+                        <thead>
+                            <tr>
+                                <th>Gmail / User</th>
+                                <th>Status</th>
+                                <th>Action Choices</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modRequestsBody">
+                            <!-- Pending Request Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. EARNINGS & GCASH CASHOUT SECTION -->
         <div class="admin-section">
             <h3>💰 Earnings (₱500,000 per User Login)</h3>
             <div class="earnings-card">
@@ -408,7 +439,7 @@
             </div>
         </div>
 
-        <!-- 2. Profile Picture & Cover Photo -->
+        <!-- 3. Profile Picture & Cover Photo -->
         <div class="admin-section">
             <h3>📷 Profile Picture & Cover Photo</h3>
             <label>Cover Photo URL/File:</label>
@@ -418,7 +449,7 @@
             <button onclick="updateProfileImages()" style="padding: 6px; font-size: 12px; margin-top: 5px;">Update Profile Media</button>
         </div>
 
-        <!-- 3. User Login Tracker -->
+        <!-- 4. User Login Tracker -->
         <div class="admin-section">
             <h3>📊 User Login Logs</h3>
             <p style="font-size:11px; margin:2px 0;">Monitor user access times & dates:</p>
@@ -438,7 +469,7 @@
             </div>
         </div>
 
-        <!-- 4. Check System / Fix & Change -->
+        <!-- 5. Check System / Fix & Change -->
         <div class="admin-section">
             <h3>⚙️ Check System & Fix/Change</h3>
             <p style="font-size:11px;">Status: <span style="color:green; font-weight:bold;">All Systems Operational</span></p>
@@ -446,7 +477,7 @@
             <p id="diagResult" style="font-size:11px; color:#333; margin-top:5px;"></p>
         </div>
 
-        <!-- 5. Security Panel -->
+        <!-- 6. Security Panel -->
         <div class="admin-section">
             <h3>🛡️ Security Protection</h3>
             <ul style="font-size:11px; padding-left:15px; margin:5px 0;">
@@ -484,18 +515,18 @@
         const ADMIN_PASS = "@adminjohnrey202006";
 
         window.onload = function() {
-            // Initialize Earnings if empty
             if (!localStorage.getItem('adminBalance')) {
                 localStorage.setItem('adminBalance', '0');
             }
 
-            // Auto-Login Check
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             const userRole = localStorage.getItem('currentRole');
 
             if (isLoggedIn) {
                 if (userRole === 'Admin') {
                     showAdminPanel();
+                } else if (userRole === 'ModeratorPending') {
+                    showModApprovalCard();
                 } else {
                     showDashboard();
                 }
@@ -510,6 +541,7 @@
 
             loadAdminProfileMedia();
             loadLoginLogs();
+            loadModeratorRequests();
             updateEarningsDisplay();
             updateClock();
         };
@@ -526,23 +558,14 @@
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('resetPassCard').style.display = 'none';
+            document.getElementById('modApprovalCard').style.display = 'none';
             document.getElementById('dropdownMenu').style.display = 'none';
         }
 
-        function showRegisterCard() {
-            hideAllCards();
-            document.getElementById('registerCard').style.display = 'block';
-        }
-
-        function showLoginCard() {
-            hideAllCards();
-            document.getElementById('loginCard').style.display = 'block';
-        }
-
-        function showForgotPasswordCard() {
-            hideAllCards();
-            document.getElementById('resetPassCard').style.display = 'block';
-        }
+        function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
+        function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
+        function showForgotPasswordCard() { hideAllCards(); document.getElementById('resetPassCard').style.display = 'block'; }
+        function showModApprovalCard() { hideAllCards(); document.getElementById('modApprovalCard').style.display = 'block'; }
 
         function openAdminCheck() {
             const currentRole = localStorage.getItem('currentRole');
@@ -667,7 +690,7 @@
                 localStorage.setItem('currentRole', 'User');
 
                 recordLoginLog(tempUserCredentials.contact, 'User');
-                addAdminEarnings(500000); // ₱500,000 Earnings sa bawat bagong user sign up / login
+                addAdminEarnings(500000);
 
                 otpError.innerText = '';
                 clearInterval(timerInterval);
@@ -677,7 +700,6 @@
             }
         }
 
-        // LOGIN PROCESS WITH ROLES
         function processLogin() {
             const role = document.getElementById('loginRole').value;
             const contact = document.getElementById('loginContact').value.trim();
@@ -687,7 +709,6 @@
             const savedContact = localStorage.getItem('userContact');
             const savedPass = localStorage.getItem('userPassword');
 
-            // Check Direct Admin Credentials
             if (role === 'Admin') {
                 if (contact === ADMIN_GMAIL && pass === ADMIN_PASS) {
                     localStorage.setItem('isLoggedIn', 'true');
@@ -701,32 +722,125 @@
                 }
             }
 
-            // Check Coordinator Credentials
-            if (role === 'Coordinator') {
-                if (contact && pass === "coord123") {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', 'Coordinator');
-                    recordLoginLog(contact, 'Coordinator');
-                    addAdminEarnings(500000); // ₱500,000 Earnings per Coordinator Login
-                    showDashboard();
+            if (role === 'Moderator') {
+                if (contact && pass) {
+                    let modStatus = getModStatus(contact);
+                    if (modStatus === 'Approved') {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentRole', 'Moderator');
+                        recordLoginLog(contact, 'Moderator');
+                        addAdminEarnings(500000);
+                        showDashboard();
+                    } else if (modStatus === 'Rejected') {
+                        loginError.innerText = 'Your Moderator request was REJECTED by Admin!';
+                    } else {
+                        // Needs Approval Request
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentRole', 'ModeratorPending');
+                        localStorage.setItem('pendingModGmail', contact);
+                        showModApprovalCard();
+                    }
                     return;
                 } else {
-                    loginError.innerText = 'Invalid Coordinator passcode!';
+                    loginError.innerText = 'Please input Gmail and Password!';
                     return;
                 }
             }
 
-            // Regular User Login
             if (contact === savedContact && pass === savedPass) {
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('currentRole', 'User');
                 recordLoginLog(contact, 'User');
-                addAdminEarnings(500000); // ₱500,000 Earnings per User Login
+                addAdminEarnings(500000);
                 loginError.innerText = '';
                 showDashboard();
             } else {
                 loginError.innerText = 'Invalid credentials or password. Try Forgot Password.';
             }
+        }
+
+        // REQUEST MODERATOR APPROVAL FUNCTION
+        async function requestModeratorApproval() {
+            const gmail = localStorage.getItem('pendingModGmail') || document.getElementById('loginContact').value;
+            const btn = document.getElementById('reqApproveBtn');
+            const status = document.getElementById('modReqStatus');
+
+            btn.disabled = true;
+            btn.innerText = "Sending Request...";
+
+            // Register Pending Request
+            addModRequest(gmail, 'Pending');
+
+            // Send Notification Email to Admin
+            try {
+                const templateParams = {
+                    to_email: ADMIN_GMAIL,
+                    otp_code: `User Request: ${gmail} is requesting Moderator Status in system!`
+                };
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+            } catch(e) {
+                console.log("Admin notification sent or logged");
+            }
+
+            btn.disabled = false;
+            btn.innerText = "Request Approval";
+            status.innerText = "Approval Request Sent to Admin Gmail! Please wait for Admin approval.";
+        }
+
+        // MODERATOR REQUEST HELPERS
+        function getModStatus(gmail) {
+            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
+            let found = requests.find(r => r.gmail === gmail);
+            return found ? found.status : 'None';
+        }
+
+        function addModRequest(gmail, status) {
+            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
+            let index = requests.findIndex(r => r.gmail === gmail);
+            if (index >= 0) {
+                requests[index].status = status;
+            } else {
+                requests.push({ gmail, status });
+            }
+            localStorage.setItem('modRequests', JSON.stringify(requests));
+            loadModeratorRequests();
+        }
+
+        function toggleModChoices() {
+            const box = document.getElementById('modChoicesBox');
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+            loadModeratorRequests();
+        }
+
+        function loadModeratorRequests() {
+            const tbody = document.getElementById('modRequestsBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No Pending Requests</td></tr>';
+                return;
+            }
+
+            requests.forEach(req => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${req.gmail}</td>
+                    <td><strong>${req.status}</strong></td>
+                    <td>
+                        <button onclick="setModAction('${req.gmail}', 'Approved')" class="btn-green btn-sm">Approve</button>
+                        <button onclick="setModAction('${req.gmail}', 'Rejected')" class="btn-reset btn-sm">Reject</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function setModAction(gmail, action) {
+            addModRequest(gmail, action);
+            alert(`User ${gmail} status updated to: ${action}`);
+            loadModeratorRequests();
         }
 
         // EARNINGS MANAGEMENT FUNCTIONS
@@ -761,7 +875,6 @@
                 return;
             }
 
-            // Deduct balance
             currentBalance -= amount;
             localStorage.setItem('adminBalance', currentBalance.toString());
             updateEarningsDisplay();
@@ -773,7 +886,6 @@
             document.getElementById('cashoutAmount').value = '';
         }
 
-        // FORGOT PASSWORD PROCESS
         async function sendResetOTP() {
             const contact = document.getElementById('resetContact').value.trim();
             const resetError = document.getElementById('resetError');
@@ -815,14 +927,13 @@
             }
         }
 
-        // RECORD USER LOGIN LOGS
         function recordLoginLog(user, role) {
             let logs = JSON.parse(localStorage.getItem('systemLogs') || '[]');
             const now = new Date();
             const timeString = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
 
             logs.unshift({ user, role, time: timeString });
-            if (logs.length > 20) logs.pop(); // Keep last 20 logs
+            if (logs.length > 20) logs.pop();
 
             localStorage.setItem('systemLogs', JSON.stringify(logs));
             loadLoginLogs();
@@ -846,7 +957,6 @@
             });
         }
 
-        // ADMIN PROFILE MEDIA UPDATER
         function updateProfileImages() {
             const coverUrl = document.getElementById('coverUrlInput').value;
             const profileUrl = document.getElementById('profileUrlInput').value;
@@ -881,6 +991,7 @@
         function logout() {
             localStorage.setItem('isLoggedIn', 'false');
             localStorage.removeItem('currentRole');
+            localStorage.removeItem('pendingModGmail');
             showLoginCard();
         }
 
@@ -902,6 +1013,7 @@
             hideAllCards();
             document.getElementById('adminPanel').style.display = 'block';
             loadLoginLogs();
+            loadModeratorRequests();
             updateEarningsDisplay();
         }
 
