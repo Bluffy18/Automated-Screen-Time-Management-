@@ -106,7 +106,7 @@
         }
         label { font-size: 13px; font-weight: bold; color: #333; }
         
-        input[type="text"], input[type="password"], input[type="time"], select {
+        input[type="text"], input[type="password"], input[type="time"], input[type="number"], select {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
@@ -200,6 +200,17 @@
             padding: 5px;
             text-align: left;
         }
+
+        .earnings-card {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .earnings-card h4 { margin: 0; font-size: 14px; text-transform: uppercase; }
+        .earnings-card .amount { font-size: 28px; font-weight: bold; margin: 5px 0; }
     </style>
 </head>
 <body>
@@ -366,11 +377,38 @@
             <img src="https://via.placeholder.com/80" id="profileImgPic" class="profile-img">
         </div>
         <div style="margin-top: 35px;">
-            <h2 style="border:none; padding:0; margin:0;" id="adminTitleDisplay">Administrator Profile</h2>
-            <small id="adminRoleDisplay">Full Access System Controller</small>
+            <h2 style="border:none; padding:0; margin:0;" id="adminTitleDisplay">John Rey Pelaez Oliva</h2>
+            <small id="adminRoleDisplay">Administrator (System Owner)</small>
         </div>
 
-        <!-- 1. Profile Picture & Cover Photo -->
+        <!-- 1. EARNINGS & GCASH CASHOUT SECTION -->
+        <div class="admin-section">
+            <h3>💰 Earnings (₱500,000 per User Login)</h3>
+            <div class="earnings-card">
+                <h4>Total Revenue</h4>
+                <div class="amount" id="totalEarningsDisplay">₱0.00</div>
+                <small>Real Money Balance</small>
+            </div>
+
+            <div style="margin-top: 10px; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                <h4 style="margin: 0 0 5px 0; font-size: 13px; color: #007bff;">Withdraw / Cashout Real Money via GCash</h4>
+                <div class="input-group" style="margin: 5px 0;">
+                    <label>GCash Name:</label>
+                    <input type="text" id="gcashName" placeholder="e.g. John Rey Oliva">
+                </div>
+                <div class="input-group" style="margin: 5px 0;">
+                    <label>GCash Number:</label>
+                    <input type="text" id="gcashNumber" placeholder="e.g. 09123456789">
+                </div>
+                <div class="input-group" style="margin: 5px 0;">
+                    <label>Amount to Cashout (₱):</label>
+                    <input type="number" id="cashoutAmount" placeholder="Enter amount">
+                </div>
+                <button onclick="processGcashWithdrawal()" class="btn-green" style="font-size: 13px; padding: 8px; margin-top: 5px;">Withdraw Real Money via GCash</button>
+            </div>
+        </div>
+
+        <!-- 2. Profile Picture & Cover Photo -->
         <div class="admin-section">
             <h3>📷 Profile Picture & Cover Photo</h3>
             <label>Cover Photo URL/File:</label>
@@ -380,7 +418,7 @@
             <button onclick="updateProfileImages()" style="padding: 6px; font-size: 12px; margin-top: 5px;">Update Profile Media</button>
         </div>
 
-        <!-- 2. User Login Tracker -->
+        <!-- 3. User Login Tracker -->
         <div class="admin-section">
             <h3>📊 User Login Logs</h3>
             <p style="font-size:11px; margin:2px 0;">Monitor user access times & dates:</p>
@@ -400,7 +438,7 @@
             </div>
         </div>
 
-        <!-- 3. Check System / Fix & Change -->
+        <!-- 4. Check System / Fix & Change -->
         <div class="admin-section">
             <h3>⚙️ Check System & Fix/Change</h3>
             <p style="font-size:11px;">Status: <span style="color:green; font-weight:bold;">All Systems Operational</span></p>
@@ -408,7 +446,7 @@
             <p id="diagResult" style="font-size:11px; color:#333; margin-top:5px;"></p>
         </div>
 
-        <!-- 4. Security Panel -->
+        <!-- 5. Security Panel -->
         <div class="admin-section">
             <h3>🛡️ Security Protection</h3>
             <ul style="font-size:11px; padding-left:15px; margin:5px 0;">
@@ -424,7 +462,7 @@
 
     <script>
         // =========================================================
-        // ANG IYONG NAKAKABIT NA EMAILJS KEYS:
+        // ANG IYONG EMAILJS KEYS:
         // =========================================================
         const EMAILJS_PUBLIC_KEY = "2PV1h2_hDzWgqxmT4"; 
         const EMAILJS_SERVICE_ID = "service_jrpo2006"; 
@@ -441,11 +479,16 @@
         let tempUserCredentials = {};
         let timerInterval = null;
 
-        // Default Admin Account Credentials
-        const ADMIN_GMAIL = "admin@system.com";
-        const ADMIN_PASS = "admin123";
+        // DIRECT ADMIN CREDENTIALS MO:
+        const ADMIN_GMAIL = "johnreypelaezoliva@gmail.com";
+        const ADMIN_PASS = "@adminjohnrey202006";
 
         window.onload = function() {
+            // Initialize Earnings if empty
+            if (!localStorage.getItem('adminBalance')) {
+                localStorage.setItem('adminBalance', '0');
+            }
+
             // Auto-Login Check
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             const userRole = localStorage.getItem('currentRole');
@@ -467,6 +510,7 @@
 
             loadAdminProfileMedia();
             loadLoginLogs();
+            updateEarningsDisplay();
             updateClock();
         };
 
@@ -507,7 +551,7 @@
             if (isLoggedIn && currentRole === 'Admin') {
                 showAdminPanel();
             } else {
-                alert("Access Restricted: Please login with Admin account first.");
+                alert("Access Restricted: Please login with your Admin account first.");
                 showLoginCard();
                 document.getElementById('loginRole').value = "Admin";
             }
@@ -623,6 +667,7 @@
                 localStorage.setItem('currentRole', 'User');
 
                 recordLoginLog(tempUserCredentials.contact, 'User');
+                addAdminEarnings(500000); // ₱500,000 Earnings sa bawat bagong user sign up / login
 
                 otpError.innerText = '';
                 clearInterval(timerInterval);
@@ -642,16 +687,16 @@
             const savedContact = localStorage.getItem('userContact');
             const savedPass = localStorage.getItem('userPassword');
 
-            // Check Admin Credentials
+            // Check Direct Admin Credentials
             if (role === 'Admin') {
-                if ((contact === ADMIN_GMAIL || contact === savedContact) && (pass === ADMIN_PASS || pass === savedPass)) {
+                if (contact === ADMIN_GMAIL && pass === ADMIN_PASS) {
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('currentRole', 'Admin');
                     recordLoginLog(contact, 'Admin');
                     showAdminPanel();
                     return;
                 } else {
-                    loginError.innerText = 'Invalid Admin credentials!';
+                    loginError.innerText = 'Invalid Admin email or password!';
                     return;
                 }
             }
@@ -662,6 +707,7 @@
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('currentRole', 'Coordinator');
                     recordLoginLog(contact, 'Coordinator');
+                    addAdminEarnings(500000); // ₱500,000 Earnings per Coordinator Login
                     showDashboard();
                     return;
                 } else {
@@ -675,11 +721,56 @@
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('currentRole', 'User');
                 recordLoginLog(contact, 'User');
+                addAdminEarnings(500000); // ₱500,000 Earnings per User Login
                 loginError.innerText = '';
                 showDashboard();
             } else {
                 loginError.innerText = 'Invalid credentials or password. Try Forgot Password.';
             }
+        }
+
+        // EARNINGS MANAGEMENT FUNCTIONS
+        function addAdminEarnings(amount) {
+            let current = parseFloat(localStorage.getItem('adminBalance') || '0');
+            current += amount;
+            localStorage.setItem('adminBalance', current.toString());
+            updateEarningsDisplay();
+        }
+
+        function updateEarningsDisplay() {
+            const current = parseFloat(localStorage.getItem('adminBalance') || '0');
+            const display = document.getElementById('totalEarningsDisplay');
+            if (display) {
+                display.innerText = `₱${current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+        }
+
+        function processGcashWithdrawal() {
+            const name = document.getElementById('gcashName').value.trim();
+            const number = document.getElementById('gcashNumber').value.trim();
+            const amount = parseFloat(document.getElementById('cashoutAmount').value);
+            let currentBalance = parseFloat(localStorage.getItem('adminBalance') || '0');
+
+            if (!name || !number || isNaN(amount) || amount <= 0) {
+                alert("Please fill in all GCash details and valid amount!");
+                return;
+            }
+
+            if (amount > currentBalance) {
+                alert("Insufficient balance! Your current balance is ₱" + currentBalance.toLocaleString());
+                return;
+            }
+
+            // Deduct balance
+            currentBalance -= amount;
+            localStorage.setItem('adminBalance', currentBalance.toString());
+            updateEarningsDisplay();
+
+            alert(`Real Money Cashout Request Sent!\n\nAmount: ₱${amount.toLocaleString()}\nGCash Name: ${name}\nGCash Number: ${number}\nRemaining Balance: ₱${currentBalance.toLocaleString()}`);
+
+            document.getElementById('gcashName').value = '';
+            document.getElementById('gcashNumber').value = '';
+            document.getElementById('cashoutAmount').value = '';
         }
 
         // FORGOT PASSWORD PROCESS
@@ -811,6 +902,7 @@
             hideAllCards();
             document.getElementById('adminPanel').style.display = 'block';
             loadLoginLogs();
+            updateEarningsDisplay();
         }
 
         function updateClock() {
