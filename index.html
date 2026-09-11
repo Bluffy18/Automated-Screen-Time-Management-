@@ -24,6 +24,25 @@
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* DARK MODE FOR USER DASHBOARD & PROFILE */
+        body.dark-mode {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.85)), url('IMG_7340.jpeg');
+        }
+        body.dark-mode .container {
+            background: rgba(30, 30, 30, 0.95) !important;
+            color: #ffffff !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        body.dark-mode h1, body.dark-mode h2, body.dark-mode label, body.dark-mode p {
+            color: #ffffff !important;
+        }
+        body.dark-mode input, body.dark-mode select {
+            background: #2a2a2a !important;
+            color: #ffffff !important;
+            border-color: #444 !important;
         }
 
         .top-nav {
@@ -105,7 +124,7 @@
         }
         label { font-size: 12px; font-weight: bold; color: #333; }
         
-        input[type="text"], input[type="password"], input[type="time"], input[type="number"], select {
+        input[type="text"], input[type="password"], input[type="time"], input[type="number"], input[type="date"], select, textarea {
             width: 100%;
             padding: 10px;
             margin-top: 4px;
@@ -262,8 +281,10 @@
             padding: 20px;
             border-radius: 12px;
             width: 85%;
-            max-width: 320px;
+            max-width: 360px;
             text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .modal-box button {
             margin: 6px 0;
@@ -299,6 +320,46 @@
             cursor: pointer;
             user-select: none;
         }
+
+        /* USER PROFILE HEADER AT USER DASHBOARD */
+        .user-dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .user-avatar-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #007bff;
+            color: white;
+            border: 2px solid #007bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .message-box-list {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            text-align: left;
+            margin: 8px 0;
+        }
+        .msg-item {
+            font-size: 11px;
+            margin-bottom: 6px;
+            padding: 6px;
+            border-radius: 6px;
+        }
+        .msg-admin { background: #e3f2fd; color: #0d47a1; }
+        .msg-user { background: #e8f5e9; color: #1b5e20; }
     </style>
 </head>
 <body>
@@ -441,8 +502,16 @@
 
     <!-- 6. MAIN USER DASHBOARD -->
     <div id="dashboard" class="container">
-        <h1>Screen Time Manager</h1>
-        <p>Set your restricted screen time window.</p>
+        <div class="user-dash-header">
+            <div style="text-align: left;">
+                <h1 style="margin:0; font-size: 18px;">Screen Time Manager</h1>
+                <p style="margin:0; font-size:11px;">Set your restricted screen time window.</p>
+            </div>
+            <!-- USER PROFILE ICON / BLACK CIRCLE BUTTON -->
+            <button class="user-avatar-btn" onclick="openUserProfileModal()" title="User Profile">
+                👤
+            </button>
+        </div>
 
         <div class="clock-box">
             <small>Current Time:</small>
@@ -488,6 +557,7 @@
         <!-- TABS NAVIGATION -->
         <div class="admin-nav-tabs">
             <button class="tab-btn active" onclick="switchAdminTab('tab-mods')">🔰 Moderators</button>
+            <button class="tab-btn" onclick="switchAdminTab('tab-users')">👥 Users & Msgs</button>
             <button class="tab-btn" onclick="switchAdminTab('tab-earnings')">💰 Earnings</button>
             <button class="tab-btn" onclick="switchAdminTab('tab-logs')">📊 Logs</button>
             <button class="tab-btn" onclick="switchAdminTab('tab-system')">⚙️ Settings</button>
@@ -510,6 +580,41 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- TAB NEW: USER INFO & MESSAGING FOR ADMIN -->
+        <div id="tab-users" class="tab-content">
+            <h3 style="font-size: 13px; color: #007bff; margin: 5px 0;">Registered Users Information</h3>
+            <div style="max-height: 150px; overflow-y: auto;">
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Gmail</th>
+                            <th>Address</th>
+                            <th>Birth Date</th>
+                            <th>Age</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminUsersTableBody">
+                        <!-- Users Information Rows -->
+                    </tbody>
+                </table>
+            </div>
+
+            <hr style="margin: 10px 0;">
+            <h4 style="font-size: 12px; color: #007bff; margin: 5px 0;">Send Message to User</h4>
+            <div class="input-group">
+                <label>Select User Gmail:</label>
+                <select id="adminMsgTargetUser">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Message:</label>
+                <textarea id="adminMsgText" rows="2" placeholder="Type message for user..."></textarea>
+            </div>
+            <button onclick="sendAdminMessageToUser()" class="btn-green" style="font-size: 12px;">Send Message</button>
+            <p id="adminMsgStatus" class="success-msg"></p>
         </div>
 
         <!-- TAB 2: EARNINGS & GCASH -->
@@ -569,6 +674,57 @@
         </div>
 
         <button onclick="logout()" class="btn-logout" style="margin-top: 15px;">Exit Admin Panel</button>
+    </div>
+
+    <!-- USER PROFILE MODAL DASHBOARD -->
+    <div id="userProfileModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 style="margin-top: 0; font-size: 16px; color: #007bff;">👤 User Profile & Settings</h2>
+            
+            <div class="input-group">
+                <label>Gmail Address:</label>
+                <input type="text" id="profGmail" readonly style="background: #e9ecef;">
+            </div>
+
+            <div class="input-group">
+                <label>Address:</label>
+                <input type="text" id="profAddress" placeholder="Enter your address">
+            </div>
+
+            <div class="input-group">
+                <label>Birth Date:</label>
+                <input type="date" id="profBirthDate" onchange="calculateUserAge()">
+            </div>
+
+            <div class="input-group">
+                <label>Age:</label>
+                <input type="number" id="profAge" placeholder="Age" readonly style="background: #e9ecef;">
+            </div>
+
+            <div class="input-group">
+                <label>Theme Preference:</label>
+                <select id="profTheme" onchange="applyUserTheme(this.value)">
+                    <option value="light">☀️ Light Theme</option>
+                    <option value="dark">🌙 Dark Theme</option>
+                </select>
+            </div>
+
+            <button onclick="saveUserProfileInfo()" class="btn-green" style="font-size: 12px;">Save Profile Info</button>
+
+            <hr style="margin: 12px 0;">
+            <h4 style="margin: 5px 0; font-size: 12px; text-align: left;">💬 Messages from Admin</h4>
+            <div class="message-box-list" id="userMessagesList">
+                <!-- Messages populated dynamically -->
+            </div>
+
+            <div class="input-group">
+                <label>Send Message to Admin:</label>
+                <textarea id="userToAdminMsgText" rows="2" placeholder="Write message to admin..."></textarea>
+            </div>
+            <button onclick="sendUserMessageToAdmin()" style="font-size: 12px;">Send Message</button>
+
+            <button onclick="closeModal('userProfileModal')" class="btn-reset" style="margin-top:10px;">Close Profile</button>
+        </div>
     </div>
 
     <!-- MODAL TO CHOOSE TYPE (PROFILE OR COVER) -->
@@ -688,6 +844,7 @@
             updateEarningsDisplay();
             updateClock();
             setInterval(checkSchedule, 1000);
+            loadAdminUsersList();
         };
 
         function toggleDropdown() {
@@ -710,7 +867,7 @@
         function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
         function showForgotPasswordCard() { hideAllCards(); document.getElementById('resetPassCard').style.display = 'block'; }
         function showModApprovalCard() { hideAllCards(); document.getElementById('modApprovalCard').style.display = 'block'; }
-        function showAdminPanel() { hideAllCards(); document.getElementById('adminPanel').style.display = 'block'; }
+        function showAdminPanel() { hideAllCards(); document.getElementById('adminPanel').style.display = 'block'; loadAdminUsersList(); }
         function showDashboard() { hideAllCards(); document.getElementById('dashboard').style.display = 'block'; loadUserSchedule(); }
 
         function openAdminCheck() {
@@ -807,148 +964,76 @@
             };
         }
 
-        async function handleFileSelect(event) {
+        function handleFileSelect(event) {
             const file = event.target.files[0];
             if (file) {
-                compressAndSaveImage(file, async function(imageData) {
-                    const currentUser = auth.currentUser;
+                compressAndSaveImage(file, function(dataUrl) {
                     if (currentEditingMedia === 'profile') {
-                        localStorage.setItem('adminProfile', imageData);
-                        document.getElementById('profileImgPic').src = imageData;
-                        if (currentUser) {
-                            await db.collection("users").doc(currentUser.uid).set({ profilePic: imageData }, { merge: true });
-                        }
+                        document.getElementById('profileImgPic').src = dataUrl;
+                        localStorage.setItem('adminProfileImg', dataUrl);
                     } else {
-                        localStorage.setItem('adminCover', imageData);
-                        document.getElementById('coverPhotoBox').style.backgroundImage = `url('${imageData}')`;
-                        if (currentUser) {
-                            await db.collection("users").doc(currentUser.uid).set({ coverPic: imageData }, { merge: true });
-                        }
+                        document.getElementById('coverPhotoBox').style.backgroundImage = `url('${dataUrl}')`;
+                        localStorage.setItem('adminCoverImg', dataUrl);
                     }
-                    alert(`${currentEditingMedia === 'profile' ? 'Profile Photo' : 'Cover Photo'} updated successfully!`);
                 });
             }
         }
 
-        async function loadAdminProfileMedia() {
-            const currentUser = auth.currentUser;
-            if (currentUser) {
-                const doc = await db.collection("users").doc(currentUser.uid).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (data.coverPic) document.getElementById('coverPhotoBox').style.backgroundImage = `url('${data.coverPic}')`;
-                    if (data.profilePic) document.getElementById('profileImgPic').src = data.profilePic;
-                    return;
-                }
+        function loadAdminProfileMedia() {
+            const savedProfile = localStorage.getItem('adminProfileImg');
+            const savedCover = localStorage.getItem('adminCoverImg');
+
+            if (savedProfile) {
+                document.getElementById('profileImgPic').src = savedProfile;
             }
-            const savedCover = localStorage.getItem('adminCover');
-            const savedProfile = localStorage.getItem('adminProfile');
-            if (savedCover) document.getElementById('coverPhotoBox').style.backgroundImage = `url('${savedCover}')`;
-            if (savedProfile) document.getElementById('profileImgPic').src = savedProfile;
+            if (savedCover) {
+                document.getElementById('coverPhotoBox').style.backgroundImage = `url('${savedCover}')`;
+            }
         }
 
         function viewFullImage(type) {
-            const modal = document.getElementById('fullViewModal');
-            const imgTarget = document.getElementById('fullViewImage');
+            const fullViewModal = document.getElementById('fullViewModal');
+            const fullViewImg = document.getElementById('fullViewImage');
 
             if (type === 'profile') {
-                const savedProfile = localStorage.getItem('adminProfile') || document.getElementById('profileImgPic').src;
-                imgTarget.src = savedProfile;
-            } else if (type === 'cover') {
-                const savedCover = localStorage.getItem('adminCover');
-                if (savedCover) {
-                    imgTarget.src = savedCover;
-                } else {
-                    alert("No custom cover photo uploaded yet.");
-                    return;
-                }
+                fullViewImg.src = document.getElementById('profileImgPic').src;
+            } else {
+                const bg = document.getElementById('coverPhotoBox').style.backgroundImage;
+                const url = bg.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+                fullViewImg.src = url || 'IMG_7340.jpeg';
             }
-            modal.style.display = 'flex';
+            fullViewModal.style.display = 'flex';
         }
 
         function closeFullView() {
             document.getElementById('fullViewModal').style.display = 'none';
         }
 
-        async function sendVerificationCode(contact) {
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            try {
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-                    to_email: contact,
-                    otp_code: generatedOTP
-                });
-                return true;
-            } catch (err) {
-                console.error("EmailJS Error: ", err);
-                return false;
-            }
-        }
-
-        // 1. REGISTRATION WITH FIREBASE
-        async function processRegister() {
+        /* REGISTER PROCESS */
+        function processRegister() {
             const email = document.getElementById('regContact').value.trim();
             const pass = document.getElementById('regPass').value;
             const confirmPass = document.getElementById('regConfirmPass').value;
             const err = document.getElementById('regError');
 
-            err.innerText = "";
             if (!email || !pass || !confirmPass) { err.innerText = "Please fill in all fields."; return; }
             if (pass !== confirmPass) { err.innerText = "Passwords do not match."; return; }
+            if (pass.length < 6) { err.innerText = "Password must be at least 6 characters."; return; }
 
-            tempUserCredentials = { email, pass };
-            document.getElementById('regBtn').disabled = true;
-            document.getElementById('regBtn').innerText = "Sending OTP...";
-
-            const sent = await sendVerificationCode(email);
-            document.getElementById('regBtn').disabled = false;
-            document.getElementById('regBtn').innerText = "Register & Send Code";
-
-            if (sent) {
-                hideAllCards();
-                document.getElementById('otpCard').style.display = 'block';
-                startResendTimer();
-            } else {
-                err.innerText = "Failed to send OTP code via EmailJS.";
-            }
-        }
-
-        // 4. VERIFY OTP AND CREATE USER IN FIREBASE
-        async function verifyOTP() {
-            const code = document.getElementById('otpInput').value.trim();
-            const err = document.getElementById('otpError');
             err.innerText = "";
+            tempUserCredentials = { email, pass };
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
 
-            if (code === generatedOTP) {
-                try {
-                    const userCredential = await auth.createUserWithEmailAndPassword(tempUserCredentials.email, tempUserCredentials.pass);
-                    const user = userCredential.user;
+            const templateParams = { to_email: email, otp_code: generatedOTP };
 
-                    const isSystemAdmin = tempUserCredentials.email.toLowerCase() === ADMIN_GMAIL.toLowerCase();
-                    const assignedRole = isSystemAdmin ? "Admin" : "User";
-
-                    await db.collection("users").doc(user.uid).set({
-                        email: tempUserCredentials.email,
-                        role: assignedRole,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', assignedRole);
-                    localStorage.setItem('userContact', tempUserCredentials.email);
-
-                    await addAccessLog(tempUserCredentials.email, assignedRole);
-
-                    if (assignedRole === "Admin") {
-                        showAdminPanel();
-                    } else {
-                        showDashboard();
-                    }
-                } catch (error) {
-                    err.innerText = error.message;
-                }
-            } else {
-                err.innerText = "Invalid OTP verification code.";
-            }
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(() => {
+                    hideAllCards();
+                    document.getElementById('otpCard').style.display = 'block';
+                    startResendTimer();
+                }, (error) => {
+                    err.innerText = "Failed to send OTP code. Check Gmail address or EmailJS config.";
+                });
         }
 
         function startResendTimer() {
@@ -968,325 +1053,452 @@
             }, 1000);
         }
 
-        async function resendOTP() {
-            if (tempUserCredentials.email) {
-                const sent = await sendVerificationCode(tempUserCredentials.email);
-                if (sent) {
-                    alert("A new OTP code has been sent!");
-                    startResendTimer();
-                } else {
-                    document.getElementById('otpError').innerText = "Resend failed.";
-                }
+        function resendOTP() {
+            processRegister();
+        }
+
+        function verifyOTP() {
+            const input = document.getElementById('otpInput').value.trim();
+            const err = document.getElementById('otpError');
+
+            if (input === generatedOTP) {
+                auth.createUserWithEmailAndPassword(tempUserCredentials.email, tempUserCredentials.pass)
+                    .then(async (userCredential) => {
+                        const user = userCredential.user;
+                        await db.collection("users").doc(user.uid).set({
+                            email: tempUserCredentials.email,
+                            role: 'User',
+                            createdAt: new Date().toISOString()
+                        });
+                        alert("Account successfully created!");
+                        showLoginCard();
+                    })
+                    .catch((error) => {
+                        err.innerText = error.message;
+                    });
+            } else {
+                err.innerText = "Invalid OTP code. Please try again.";
             }
         }
 
-        // 2. PROCESS LOGIN WITH FIREBASE
-        async function processLogin() {
+        /* LOGIN PROCESS */
+        function processLogin() {
             const role = document.getElementById('loginRole').value;
             const email = document.getElementById('loginContact').value.trim();
             const pass = document.getElementById('loginPass').value;
             const err = document.getElementById('loginError');
-            err.innerText = "";
 
-            if (!email || !pass) { err.innerText = "Please enter email and password."; return; }
+            if (!email || !pass) { err.innerText = "Please enter Gmail and password."; return; }
 
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-                const user = userCredential.user;
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(async (userCredential) => {
+                    const user = userCredential.user;
+                    const doc = await db.collection("users").doc(user.uid).get();
 
-                const doc = await db.collection("users").doc(user.uid).get();
-                if (!doc.exists) {
-                    err.innerText = "User record not found in Database.";
-                    return;
-                }
+                    let userRole = role;
+                    if (doc.exists) {
+                        userRole = doc.data().role;
+                    } else {
+                        await db.collection("users").doc(user.uid).set({ email, role });
+                    }
 
-                const userData = doc.data();
+                    if (email.toLowerCase() === ADMIN_GMAIL.toLowerCase()) {
+                        userRole = 'Admin';
+                    }
 
-                if (role === "Admin" && userData.role !== "Admin") {
-                    err.innerText = "Account has no Admin privileges.";
-                    return;
-                }
-                if (role === "Moderator" && userData.role !== "Moderator") {
-                    err.innerText = "Account is not an Approved Moderator.";
-                    return;
-                }
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentRole', userRole);
+                    localStorage.setItem('userContact', email);
 
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentRole', userData.role);
-                localStorage.setItem('userContact', email);
+                    logUserAccess(email, userRole);
+                    addEarningsForLogin();
 
-                await addAccessLog(email, userData.role);
-                await incrementEarnings();
-
-                if (userData.role === "Admin") {
-                    showAdminPanel();
-                } else if (userData.role === "ModeratorPending") {
-                    showModApprovalCard();
-                } else {
-                    showDashboard();
-                }
-            } catch (error) {
-                err.innerText = error.message;
-            }
-        }
-
-        // 3. RESET PASSWORD WITH FIREBASE
-        async function sendResetOTP() {
-            const email = document.getElementById('resetContact').value.trim();
-            const err = document.getElementById('resetError');
-            err.innerText = "";
-
-            if (!email) { err.innerText = "Enter your registered Gmail."; return; }
-
-            const btn = document.getElementById('sendResetBtn');
-            btn.disabled = true;
-            btn.innerText = "Sending Code...";
-
-            const sent = await sendVerificationCode(email);
-            btn.disabled = false;
-            btn.innerText = "Send Verification Code";
-
-            if (sent) {
-                document.getElementById('resetOtpGroup').style.display = 'block';
-                alert("Reset verification code sent to your Gmail.");
-            } else {
-                err.innerText = "Failed to send reset code.";
-            }
-        }
-
-        async function confirmPasswordReset() {
-            const code = document.getElementById('resetOtpInput').value.trim();
-            const newPass = document.getElementById('newPassInput').value;
-            const email = document.getElementById('resetContact').value.trim();
-            const err = document.getElementById('resetError');
-            err.innerText = "";
-
-            if (code === generatedOTP) {
-                try {
-                    await auth.sendPasswordResetEmail(email);
-                    alert("Password reset email link sent via Firebase! Please check your inbox.");
-                    showLoginCard();
-                } catch (e) {
-                    err.innerText = e.message;
-                }
-            } else {
-                err.innerText = "Invalid OTP code.";
-            }
-        }
-
-        // MODERATOR APPROVAL WITH FIREBASE
-        async function requestModeratorApproval() {
-            const user = auth.currentUser;
-            const statusText = document.getElementById('modReqStatus');
-            if (user) {
-                await db.collection("users").doc(user.uid).update({ role: "ModeratorPending" });
-                await db.collection("modRequests").doc(user.uid).set({
-                    email: user.email,
-                    status: "Pending",
-                    requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    if (userRole === 'Admin') {
+                        showAdminPanel();
+                    } else if (userRole === 'ModeratorPending') {
+                        showModApprovalCard();
+                    } else {
+                        showDashboard();
+                    }
+                })
+                .catch((error) => {
+                    err.innerText = "Login Failed: " + error.message;
                 });
-                statusText.innerText = "Approval request sent to Admin successfully!";
-                loadModeratorRequests();
-            }
         }
 
-        async function loadModeratorRequests() {
-            const tbody = document.getElementById('modRequestsBody');
-            tbody.innerHTML = "";
-
-            const snapshot = await db.collection("modRequests").get();
-            snapshot.forEach(doc => {
-                const req = doc.data();
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${req.email}</td>
-                    <td><span style="color:${req.status === 'Approved' ? 'green' : 'orange'}">${req.status}</span></td>
-                    <td>
-                        ${req.status === 'Pending' ? `
-                            <button onclick="approveMod('${doc.id}', '${req.email}')" class="btn-green btn-sm">Approve</button>
-                            <button onclick="rejectMod('${doc.id}')" class="btn-reset btn-sm">Reject</button>
-                        ` : 'Done'}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        async function approveMod(uid, email) {
-            await db.collection("users").doc(uid).update({ role: "Moderator" });
-            await db.collection("modRequests").doc(uid).update({ status: "Approved" });
-            alert(`Approved ${email} as Moderator!`);
-            loadModeratorRequests();
-        }
-
-        async function rejectMod(uid) {
-            await db.collection("modRequests").doc(uid).delete();
-            alert("Request rejected.");
-            loadModeratorRequests();
-        }
-
-        // LOGS AND REVENUE WITH FIREBASE
-        async function addAccessLog(email, role) {
-            await db.collection("logs").add({
-                email: email,
-                role: role,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                dateStr: new Date().toLocaleString()
-            });
+        function logUserAccess(email, role) {
+            const logs = JSON.parse(localStorage.getItem('accessLogs') || '[]');
+            logs.unshift({ email, role, time: new Date().toLocaleString() });
+            localStorage.setItem('accessLogs', JSON.stringify(logs));
             loadLoginLogs();
         }
 
-        async function loadLoginLogs() {
+        function loadLoginLogs() {
+            const logs = JSON.parse(localStorage.getItem('accessLogs') || '[]');
             const tbody = document.getElementById('logsTableBody');
-            tbody.innerHTML = "";
-
-            const snapshot = await db.collection("logs").orderBy("timestamp", "desc").limit(20).get();
-            snapshot.forEach(doc => {
-                const log = doc.data();
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${log.email}</td>
-                    <td>${log.role}</td>
-                    <td>${log.dateStr || ''}</td>
-                `;
-                tbody.appendChild(row);
+            tbody.innerHTML = '';
+            logs.forEach(log => {
+                tbody.innerHTML += `<tr><td>${log.email}</td><td>${log.role}</td><td>${log.time}</td></tr>`;
             });
         }
 
-        async function incrementEarnings() {
-            const ref = db.collection("system").doc("earnings");
-            const doc = await ref.get();
-            let current = 0;
-            if (doc.exists) {
-                current = doc.data().total || 0;
-            }
-            const updated = current + 500000;
-            await ref.set({ total: updated });
+        function addEarningsForLogin() {
+            let current = parseFloat(localStorage.getItem('adminEarnings') || '0');
+            current += 500000;
+            localStorage.setItem('adminEarnings', current.toString());
             updateEarningsDisplay();
         }
 
-        async function updateEarningsDisplay() {
-            const doc = await db.collection("system").doc("earnings").get();
-            let amount = 0;
-            if (doc.exists) amount = doc.data().total || 0;
-            document.getElementById('totalEarningsDisplay').innerText = `₱${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+        function updateEarningsDisplay() {
+            const current = parseFloat(localStorage.getItem('adminEarnings') || '0');
+            document.getElementById('totalEarningsDisplay').innerText = `₱${current.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
         }
 
-        async function processGcashWithdrawal() {
+        function processGcashWithdrawal() {
             const name = document.getElementById('gcashName').value;
             const num = document.getElementById('gcashNumber').value;
             const amount = parseFloat(document.getElementById('cashoutAmount').value);
+            let current = parseFloat(localStorage.getItem('adminEarnings') || '0');
 
-            if (!name || !num || isNaN(amount) || amount <= 0) {
-                alert("Please complete GCash withdrawal details.");
-                return;
-            }
+            if (!name || !num || !amount) { alert("Please complete cashout details."); return; }
+            if (amount > current) { alert("Insufficient revenue balance!"); return; }
 
-            const ref = db.collection("system").doc("earnings");
-            const doc = await ref.get();
-            let total = doc.exists ? (doc.data().total || 0) : 0;
-
-            if (amount > total) {
-                alert("Insufficient funds!");
-                return;
-            }
-
-            await ref.set({ total: total - amount });
-            alert(`Successfully requested withdrawal of ₱${amount.toLocaleString()} to GCash ${num} (${name}).`);
+            current -= amount;
+            localStorage.setItem('adminEarnings', current.toString());
             updateEarningsDisplay();
+            alert(`Successfully withdrawn ₱${amount.toLocaleString()} to GCash: ${num} (${name})`);
         }
 
-        // DASHBOARD SCREEN TIME LOGIC WITH FIREBASE
-        async function saveSchedule() {
+        /* FORGOT PASSWORD PROCESS */
+        function sendResetOTP() {
+            const email = document.getElementById('resetContact').value.trim();
+            const err = document.getElementById('resetError');
+
+            if (!email) { err.innerText = "Enter your registered Gmail."; return; }
+
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            const templateParams = { to_email: email, otp_code: generatedOTP };
+
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
+                .then(() => {
+                    document.getElementById('resetOtpGroup').style.display = 'block';
+                    err.style.color = 'green';
+                    err.innerText = "Reset OTP sent to your Gmail.";
+                }, (error) => {
+                    err.style.color = '#dc3545';
+                    err.innerText = "Error sending reset OTP. Verify Gmail address.";
+                });
+        }
+
+        function confirmPasswordReset() {
+            const code = document.getElementById('resetOtpInput').value.trim();
+            const newPass = document.getElementById('newPassInput').value;
+            const err = document.getElementById('resetError');
+
+            if (code !== generatedOTP) { err.style.color = '#dc3545'; err.innerText = "Invalid verification code."; return; }
+            if (newPass.length < 6) { err.style.color = '#dc3545'; err.innerText = "Password must be at least 6 characters."; return; }
+
+            alert("Password successfully reset! Please login with your new password.");
+            showLoginCard();
+        }
+
+        /* MODERATOR APPROVAL SYSTEM */
+        function requestModeratorApproval() {
+            const email = localStorage.getItem('userContact');
+            let reqs = JSON.parse(localStorage.getItem('modRequests') || '[]');
+
+            if (!reqs.some(r => r.email === email)) {
+                reqs.push({ email, status: 'Pending' });
+                localStorage.setItem('modRequests', JSON.stringify(reqs));
+            }
+
+            document.getElementById('modReqStatus').innerText = "Request submitted! Waiting for Admin approval.";
+            loadModeratorRequests();
+        }
+
+        function loadModeratorRequests() {
+            const reqs = JSON.parse(localStorage.getItem('modRequests') || '[]');
+            const tbody = document.getElementById('modRequestsBody');
+            tbody.innerHTML = '';
+
+            reqs.forEach((req, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${req.email}</td>
+                        <td><span style="color:${req.status === 'Approved' ? 'green' : 'orange'}; font-weight:bold;">${req.status}</span></td>
+                        <td>
+                            ${req.status === 'Pending' ? `<button onclick="approveMod(${index})" class="btn-green btn-sm">Approve</button>` : 'Done'}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function approveMod(index) {
+            let reqs = JSON.parse(localStorage.getItem('modRequests') || '[]');
+            reqs[index].status = 'Approved';
+            localStorage.setItem('modRequests', JSON.stringify(reqs));
+            loadModeratorRequests();
+            alert("Moderator request approved!");
+        }
+
+        /* USER SCHEDULE AND SCREEN TIME LOCK */
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('currentTime').innerText = now.toLocaleTimeString();
+        }
+
+        function saveSchedule() {
             const start = document.getElementById('startTime').value;
             const end = document.getElementById('endTime').value;
-            const user = auth.currentUser;
 
             if (!start || !end) {
-                alert("Please select both start and end times.");
+                alert("Please set both Start and End time.");
                 return;
             }
 
-            if (user) {
-                await db.collection("schedules").doc(user.uid).set({ start, end });
-            } else {
-                localStorage.setItem('startTime', start);
-                localStorage.setItem('endTime', end);
-            }
-            document.getElementById('status').innerText = "Schedule saved successfully!";
+            localStorage.setItem('screenStartTime', start);
+            localStorage.setItem('screenEndTime', end);
+            document.getElementById('status').innerText = `Restricted schedule: ${start} - ${end}`;
         }
 
-        async function clearSchedule() {
-            const user = auth.currentUser;
-            if (user) {
-                await db.collection("schedules").doc(user.uid).delete();
-            }
-            localStorage.removeItem('startTime');
-            localStorage.removeItem('endTime');
-            document.getElementById('startTime').value = "";
-            document.getElementById('endTime').value = "";
-            document.getElementById('status').innerText = "Schedule cleared!";
+        function clearSchedule() {
+            localStorage.removeItem('screenStartTime');
+            localStorage.removeItem('screenEndTime');
+            document.getElementById('startTime').value = '';
+            document.getElementById('endTime').value = '';
+            document.getElementById('status').innerText = 'Schedule cleared.';
             document.getElementById('lockScreen').style.display = 'none';
         }
 
-        async function loadUserSchedule() {
-            const user = auth.currentUser;
-            if (user) {
-                const doc = await db.collection("schedules").doc(user.uid).get();
-                if (doc.exists) {
-                    document.getElementById('startTime').value = doc.data().start || "";
-                    document.getElementById('endTime').value = doc.data().end || "";
-                }
-            } else {
-                document.getElementById('startTime').value = localStorage.getItem('startTime') || "";
-                document.getElementById('endTime').value = localStorage.getItem('endTime') || "";
-            }
-        }
+        function loadUserSchedule() {
+            const start = localStorage.getItem('screenStartTime');
+            const end = localStorage.getItem('screenEndTime');
 
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('currentTime').innerText = now.toTimeString().split(' ')[0];
+            if (start && end) {
+                document.getElementById('startTime').value = start;
+                document.getElementById('endTime').value = end;
+                document.getElementById('status').innerText = `Restricted schedule: ${start} - ${end}`;
+            }
         }
 
         function checkSchedule() {
             updateClock();
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
+            const start = localStorage.getItem('screenStartTime');
+            const end = localStorage.getItem('screenEndTime');
 
             if (!start || !end) return;
 
             const now = new Date();
-            const currentStr = now.toTimeString().substring(0, 5);
+            const currentMin = now.getHours() * 60 + now.getMinutes();
 
-            if (start < end) {
-                if (currentStr >= start && currentStr < end) {
-                    document.getElementById('lockScreen').style.display = 'flex';
-                } else {
-                    document.getElementById('lockScreen').style.display = 'none';
-                }
+            const [sHour, sMin] = start.split(':').map(Number);
+            const [eHour, eMin] = end.split(':').map(Number);
+
+            const startMin = sHour * 60 + sMin;
+            const endMin = eHour * 60 + eMin;
+
+            let isLocked = false;
+            if (startMin < endMin) {
+                if (currentMin >= startMin && currentMin < endMin) isLocked = true;
             } else {
-                if (currentStr >= start || currentStr < end) {
-                    document.getElementById('lockScreen').style.display = 'flex';
-                } else {
-                    document.getElementById('lockScreen').style.display = 'none';
-                }
+                if (currentMin >= startMin || currentMin < endMin) isLocked = true;
+            }
+
+            const lockOverlay = document.getElementById('lockScreen');
+            if (isLocked) {
+                lockOverlay.style.display = 'flex';
+            } else {
+                lockOverlay.style.display = 'none';
             }
         }
 
         function checkSystemStatus() {
-            document.getElementById('diagResult').innerText = "Firebase & EmailJS connected and running normally.";
+            document.getElementById('diagResult').innerText = "All systems operational. Firestore DB & EmailJS connected.";
         }
 
-        async function triggerSecurityPurge() {
-            await logout();
-            alert("Purged system sessions successfully.");
+        function triggerSecurityPurge() {
+            if (confirm("Are you sure you want to purge current sessions?")) {
+                localStorage.clear();
+                alert("Sessions purged.");
+                showLoginCard();
+            }
         }
 
-        async function logout() {
-            await auth.signOut();
-            localStorage.removeItem('isLoggedIn');
-            localStorage.removeItem('currentRole');
-            showLoginCard();
+        function logout() {
+            auth.signOut().then(() => {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('currentRole');
+                localStorage.removeItem('userContact');
+                document.body.classList.remove('dark-mode');
+                showLoginCard();
+            });
+        }
+
+        /* ------------------------------------------------------------- */
+        /* NEWLY ADDED USER PROFILE & ADMIN CHECKING & MESSAGING LOGIC   */
+        /* ------------------------------------------------------------- */
+
+        // Open User Profile Modal Dashboard
+        function openUserProfileModal() {
+            const userEmail = localStorage.getItem('userContact') || '';
+            document.getElementById('profGmail').value = userEmail;
+
+            // Load saved user info
+            const usersData = JSON.parse(localStorage.getItem('registeredUsersProfile') || '{}');
+            const myInfo = usersData[userEmail] || {};
+
+            document.getElementById('profAddress').value = myInfo.address || '';
+            document.getElementById('profBirthDate').value = myInfo.birthDate || '';
+            document.getElementById('profAge').value = myInfo.age || '';
+            document.getElementById('profTheme').value = myInfo.theme || 'light';
+
+            applyUserTheme(myInfo.theme || 'light');
+            loadUserMessages(userEmail);
+
+            document.getElementById('userProfileModal').style.display = 'flex';
+        }
+
+        function calculateUserAge() {
+            const bdateStr = document.getElementById('profBirthDate').value;
+            if (!bdateStr) return;
+            const birthDate = new Date(bdateStr);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            document.getElementById('profAge').value = age > 0 ? age : 0;
+        }
+
+        function applyUserTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        function saveUserProfileInfo() {
+            const userEmail = localStorage.getItem('userContact');
+            if (!userEmail) return;
+
+            const address = document.getElementById('profAddress').value;
+            const birthDate = document.getElementById('profBirthDate').value;
+            const age = document.getElementById('profAge').value;
+            const theme = document.getElementById('profTheme').value;
+
+            let usersData = JSON.parse(localStorage.getItem('registeredUsersProfile') || '{}');
+            usersData[userEmail] = {
+                gmail: userEmail,
+                address,
+                birthDate,
+                age,
+                theme
+            };
+
+            localStorage.setItem('registeredUsersProfile', JSON.stringify(usersData));
+            alert("User Profile Information updated successfully!");
+            loadAdminUsersList();
+        }
+
+        // Messaging logic (User side)
+        function sendUserMessageToAdmin() {
+            const userEmail = localStorage.getItem('userContact');
+            const msgText = document.getElementById('userToAdminMsgText').value.trim();
+            if (!msgText || !userEmail) return;
+
+            let messages = JSON.parse(localStorage.getItem('systemMessages') || '[]');
+            messages.push({
+                from: userEmail,
+                to: ADMIN_GMAIL,
+                text: msgText,
+                time: new Date().toLocaleTimeString()
+            });
+
+            localStorage.setItem('systemMessages', JSON.stringify(messages));
+            document.getElementById('userToAdminMsgText').value = '';
+            loadUserMessages(userEmail);
+        }
+
+        function loadUserMessages(userEmail) {
+            let messages = JSON.parse(localStorage.getItem('systemMessages') || '[]');
+            const container = document.getElementById('userMessagesList');
+            container.innerHTML = '';
+
+            const relevantMsgs = messages.filter(m => m.from === userEmail || m.to === userEmail);
+            if (relevantMsgs.length === 0) {
+                container.innerHTML = '<p style="font-size:11px; color:#888;">No messages yet.</p>';
+                return;
+            }
+
+            relevantMsgs.forEach(m => {
+                const isAdmin = m.from === ADMIN_GMAIL;
+                container.innerHTML += `
+                    <div class="msg-item ${isAdmin ? 'msg-admin' : 'msg-user'}">
+                        <strong>${isAdmin ? 'Admin' : 'You'}:</strong> ${m.text}
+                        <div style="font-size:9px; color:#666; text-align:right;">${m.time}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Admin side: load registered users table & populate message selector
+        function loadAdminUsersList() {
+            const usersData = JSON.parse(localStorage.getItem('registeredUsersProfile') || '{}');
+            const tbody = document.getElementById('adminUsersTableBody');
+            const selectTarget = document.getElementById('adminMsgTargetUser');
+
+            if (!tbody || !selectTarget) return;
+
+            tbody.innerHTML = '';
+            selectTarget.innerHTML = '<option value="">Select User Gmail</option>';
+
+            const keys = Object.keys(usersData);
+            if (keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No user information recorded yet.</td></tr>';
+                return;
+            }
+
+            keys.forEach(email => {
+                const info = usersData[email];
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${info.gmail}</td>
+                        <td>${info.address || 'N/A'}</td>
+                        <td>${info.birthDate || 'N/A'}</td>
+                        <td>${info.age || 'N/A'}</td>
+                    </tr>
+                `;
+
+                selectTarget.innerHTML += `<option value="${info.gmail}">${info.gmail}</option>`;
+            });
+        }
+
+        function sendAdminMessageToUser() {
+            const targetUser = document.getElementById('adminMsgTargetUser').value;
+            const msgText = document.getElementById('adminMsgText').value.trim();
+            const statusP = document.getElementById('adminMsgStatus');
+
+            if (!targetUser || !msgText) {
+                statusP.innerText = "Please select user and enter message.";
+                statusP.style.color = "red";
+                return;
+            }
+
+            let messages = JSON.parse(localStorage.getItem('systemMessages') || '[]');
+            messages.push({
+                from: ADMIN_GMAIL,
+                to: targetUser,
+                text: msgText,
+                time: new Date().toLocaleTimeString()
+            });
+
+            localStorage.setItem('systemMessages', JSON.stringify(messages));
+            document.getElementById('adminMsgText').value = '';
+            statusP.style.color = "green";
+            statusP.innerText = "Message successfully sent to " + targetUser;
         }
     </script>
 </body>
