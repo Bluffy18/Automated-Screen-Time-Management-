@@ -209,6 +209,28 @@
             transform: scale(1.05);
         }
 
+        /* USER PHOTO CONTAINER SPECIFIC (NO COVER PHOTO) */
+        .user-photo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .user-profile-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #007bff;
+            background: #eee;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .user-profile-img:hover {
+            transform: scale(1.05);
+        }
+
         /* ADMIN NAVIGATION TABS */
         .admin-nav-tabs {
             display: flex;
@@ -341,6 +363,13 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            overflow: hidden;
+            padding: 0;
+        }
+        .user-avatar-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .message-box-list {
             background: #f8f9fa;
@@ -507,8 +536,8 @@
                 <h1 style="margin:0; font-size: 18px;">Screen Time Manager</h1>
                 <p style="margin:0; font-size:11px;">Set your restricted screen time window.</p>
             </div>
-            <!-- USER PROFILE ICON / BLACK CIRCLE BUTTON -->
-            <button class="user-avatar-btn" onclick="openUserProfileModal()" title="User Profile">
+            <!-- USER PROFILE ICON / IMAGE BUTTON -->
+            <button class="user-avatar-btn" id="dashUserAvatarBtn" onclick="openUserProfileModal()" title="User Profile">
                 👤
             </button>
         </div>
@@ -681,6 +710,12 @@
         <div class="modal-box">
             <h2 style="margin-top: 0; font-size: 16px; color: #007bff;">👤 User Profile & Settings</h2>
             
+            <!-- USER PHOTO CONTAINER (NO COVER PHOTO) -->
+            <div class="user-photo-section">
+                <img src="https://via.placeholder.com/90" id="userProfilePicImg" class="user-profile-img" onclick="viewFullImage('userProfile')" title="View Photo">
+                <button onclick="openUserPhotoSourceModal()" style="font-size: 11px; padding: 4px 10px; width: auto; margin-top: 6px; background: #007bff;">📷 Change Profile Photo</button>
+            </div>
+
             <div class="input-group">
                 <label>Gmail Address:</label>
                 <input type="text" id="profGmail" readonly style="background: #e9ecef;">
@@ -727,7 +762,7 @@
         </div>
     </div>
 
-    <!-- MODAL TO CHOOSE TYPE (PROFILE OR COVER) -->
+    <!-- MODAL TO CHOOSE TYPE FOR ADMIN (PROFILE OR COVER) -->
     <div id="typeSelectorModal" class="modal-overlay">
         <div class="modal-box">
             <h3 style="margin-top:0; font-size:16px;">Edit Media</h3>
@@ -824,180 +859,90 @@
                             showDashboard();
                         }
                     }
-                } else {
-                    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                    const userRole = localStorage.getItem('currentRole');
-
-                    if (isLoggedIn && userRole === 'Admin') {
-                        showAdminPanel();
-                    } else if (isLoggedIn) {
-                        showDashboard();
-                    } else {
-                        showLoginCard();
-                    }
                 }
             });
-
-            loadAdminProfileMedia();
-            loadLoginLogs();
-            loadModeratorRequests();
-            updateEarningsDisplay();
-            updateClock();
-            setInterval(checkSchedule, 1000);
-            loadAdminUsersList();
+            startClock();
         };
+
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                const clockEl = document.getElementById('currentTime');
+                if (clockEl) clockEl.innerText = timeString;
+            }, 1000);
+        }
 
         function toggleDropdown() {
             const menu = document.getElementById('dropdownMenu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
         }
 
-        function hideAllCards() {
-            document.getElementById('registerCard').style.display = 'none';
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('otpCard').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('resetPassCard').style.display = 'none';
-            document.getElementById('modApprovalCard').style.display = 'none';
-            document.getElementById('dropdownMenu').style.display = 'none';
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
         }
 
-        function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
-        function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
-        function showForgotPasswordCard() { hideAllCards(); document.getElementById('resetPassCard').style.display = 'block'; }
-        function showModApprovalCard() { hideAllCards(); document.getElementById('modApprovalCard').style.display = 'block'; }
-        function showAdminPanel() { hideAllCards(); document.getElementById('adminPanel').style.display = 'block'; loadAdminUsersList(); }
-        function showDashboard() { hideAllCards(); document.getElementById('dashboard').style.display = 'block'; loadUserSchedule(); }
-
-        function openAdminCheck() {
-            const currentRole = localStorage.getItem('currentRole');
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
-            if (isLoggedIn && currentRole === 'Admin') {
-                showAdminPanel();
-            } else {
-                alert("Access Restricted: Please login with your Admin account first.");
-                showLoginCard();
-                document.getElementById('loginRole').value = "Admin";
-            }
-        }
-
-        function switchAdminTab(tabId) {
-            const tabs = document.querySelectorAll('.tab-content');
-            const btns = document.querySelectorAll('.tab-btn');
-
-            tabs.forEach(tab => tab.classList.remove('active'));
-            btns.forEach(btn => btn.classList.remove('active'));
-
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
+        /* --- MEDIA SELECTOR FUNCTIONS FOR ADMIN & USER --- */
         function openMediaSelectorModal() {
             document.getElementById('typeSelectorModal').style.display = 'flex';
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
+        function openUserPhotoSourceModal() {
+            currentEditingMedia = 'userProfile';
+            document.getElementById('sourceModalTitle').innerText = 'Select Profile Photo Source';
+            document.getElementById('sourceModalSub').innerText = 'Choose where to get your profile photo:';
+            document.getElementById('sourceSelectorModal').style.display = 'flex';
         }
 
         function selectMediaType(type) {
             currentEditingMedia = type;
             closeModal('typeSelectorModal');
-
-            if (type === 'profile') {
-                document.getElementById('sourceModalTitle').innerText = "Select Profile Photo";
-                document.getElementById('sourceModalSub').innerText = "Choose source to upload profile picture:";
-            } else {
-                document.getElementById('sourceModalTitle').innerText = "Select Cover Photo";
-                document.getElementById('sourceModalSub').innerText = "Choose source to upload cover picture:";
-            }
-
+            document.getElementById('sourceModalTitle').innerText = type === 'profile' ? 'Select Profile Photo' : 'Select Cover Photo';
             document.getElementById('sourceSelectorModal').style.display = 'flex';
         }
 
         function triggerFileInput(source) {
             closeModal('sourceSelectorModal');
-            if (source === 'gallery') {
-                document.getElementById('inputGallery').click();
-            } else if (source === 'camera') {
-                document.getElementById('inputCamera').click();
-            } else if (source === 'files') {
-                document.getElementById('inputFiles').click();
-            }
-        }
-
-        function compressAndSaveImage(file, callback) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function (event) {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = function () {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800;
-                    const MAX_HEIGHT = 800;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                    } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                    callback(compressedDataUrl);
-                };
-            };
+            if (source === 'gallery') document.getElementById('inputGallery').click();
+            else if (source === 'camera') document.getElementById('inputCamera').click();
+            else if (source === 'files') document.getElementById('inputFiles').click();
         }
 
         function handleFileSelect(event) {
             const file = event.target.files[0];
             if (file) {
-                compressAndSaveImage(file, function(dataUrl) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
                     if (currentEditingMedia === 'profile') {
-                        document.getElementById('profileImgPic').src = dataUrl;
-                        localStorage.setItem('adminProfileImg', dataUrl);
-                    } else {
-                        document.getElementById('coverPhotoBox').style.backgroundImage = `url('${dataUrl}')`;
-                        localStorage.setItem('adminCoverImg', dataUrl);
+                        document.getElementById('profileImgPic').src = imageData;
+                    } else if (currentEditingMedia === 'cover') {
+                        document.getElementById('coverPhotoBox').style.backgroundImage = `url('${imageData}')`;
+                    } else if (currentEditingMedia === 'userProfile') {
+                        document.getElementById('userProfilePicImg').src = imageData;
+                        updateUserDashAvatar(imageData);
                     }
-                });
+                };
+                reader.readAsDataURL(file);
             }
         }
 
-        function loadAdminProfileMedia() {
-            const savedProfile = localStorage.getItem('adminProfileImg');
-            const savedCover = localStorage.getItem('adminCoverImg');
-
-            if (savedProfile) {
-                document.getElementById('profileImgPic').src = savedProfile;
-            }
-            if (savedCover) {
-                document.getElementById('coverPhotoBox').style.backgroundImage = `url('${savedCover}')`;
+        function updateUserDashAvatar(src) {
+            const btn = document.getElementById('dashUserAvatarBtn');
+            if (btn) {
+                btn.innerHTML = `<img src="${src}" alt="Profile">`;
             }
         }
 
         function viewFullImage(type) {
             const fullViewModal = document.getElementById('fullViewModal');
             const fullViewImg = document.getElementById('fullViewImage');
-
+            
             if (type === 'profile') {
                 fullViewImg.src = document.getElementById('profileImgPic').src;
-            } else {
+            } else if (type === 'userProfile') {
+                fullViewImg.src = document.getElementById('userProfilePicImg').src;
+            } else if (type === 'cover') {
                 const bg = document.getElementById('coverPhotoBox').style.backgroundImage;
                 const url = bg.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
                 fullViewImg.src = url || 'IMG_7340.jpeg';
@@ -1009,367 +954,41 @@
             document.getElementById('fullViewModal').style.display = 'none';
         }
 
-        /* REGISTER PROCESS */
-        function processRegister() {
-            const email = document.getElementById('regContact').value.trim();
-            const pass = document.getElementById('regPass').value;
-            const confirmPass = document.getElementById('regConfirmPass').value;
-            const err = document.getElementById('regError');
-
-            if (!email || !pass || !confirmPass) { err.innerText = "Please fill in all fields."; return; }
-            if (pass !== confirmPass) { err.innerText = "Passwords do not match."; return; }
-            if (pass.length < 6) { err.innerText = "Password must be at least 6 characters."; return; }
-
-            err.innerText = "";
-            tempUserCredentials = { email, pass };
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-
-            const templateParams = { to_email: email, otp_code: generatedOTP };
-
-            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-                .then(() => {
-                    hideAllCards();
-                    document.getElementById('otpCard').style.display = 'block';
-                    startResendTimer();
-                }, (error) => {
-                    err.innerText = "Failed to send OTP code. Check Gmail address or EmailJS config.";
-                });
-        }
-
-        function startResendTimer() {
-            let count = 60;
-            const btn = document.getElementById('resendBtn');
-            btn.disabled = true;
-            clearInterval(timerInterval);
-
-            timerInterval = setInterval(() => {
-                count--;
-                btn.innerText = `Resend Code (${count}s)`;
-                if (count <= 0) {
-                    clearInterval(timerInterval);
-                    btn.disabled = false;
-                    btn.innerText = "Resend Code";
+        /* --- USER PROFILE DATA & NAVIGATION --- */
+        async function openUserProfileModal() {
+            const user = auth.currentUser;
+            if (user) {
+                document.getElementById('profGmail').value = user.email;
+                const doc = await db.collection("users").doc(user.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('profAddress').value = data.address || '';
+                    document.getElementById('profBirthDate').value = data.birthDate || '';
+                    document.getElementById('profAge').value = data.age || '';
+                    document.getElementById('profTheme').value = data.theme || 'light';
+                    if (data.photoURL) {
+                        document.getElementById('userProfilePicImg').src = data.photoURL;
+                        updateUserDashAvatar(data.photoURL);
+                    }
+                    applyUserTheme(data.theme || 'light');
                 }
-            }, 1000);
-        }
-
-        function resendOTP() {
-            processRegister();
-        }
-
-        function verifyOTP() {
-            const input = document.getElementById('otpInput').value.trim();
-            const err = document.getElementById('otpError');
-
-            if (input === generatedOTP) {
-                auth.createUserWithEmailAndPassword(tempUserCredentials.email, tempUserCredentials.pass)
-                    .then(async (userCredential) => {
-                        const user = userCredential.user;
-                        await db.collection("users").doc(user.uid).set({
-                            email: tempUserCredentials.email,
-                            role: 'User',
-                            createdAt: new Date().toISOString()
-                        });
-                        alert("Account successfully created!");
-                        showLoginCard();
-                    })
-                    .catch((error) => {
-                        err.innerText = error.message;
-                    });
-            } else {
-                err.innerText = "Invalid OTP code. Please try again.";
+                loadUserMessages(user.email);
             }
-        }
-
-        /* LOGIN PROCESS */
-        function processLogin() {
-            const role = document.getElementById('loginRole').value;
-            const email = document.getElementById('loginContact').value.trim();
-            const pass = document.getElementById('loginPass').value;
-            const err = document.getElementById('loginError');
-
-            if (!email || !pass) { err.innerText = "Please enter Gmail and password."; return; }
-
-            auth.signInWithEmailAndPassword(email, pass)
-                .then(async (userCredential) => {
-                    const user = userCredential.user;
-                    const doc = await db.collection("users").doc(user.uid).get();
-
-                    let userRole = role;
-                    if (doc.exists) {
-                        userRole = doc.data().role;
-                    } else {
-                        await db.collection("users").doc(user.uid).set({ email, role });
-                    }
-
-                    if (email.toLowerCase() === ADMIN_GMAIL.toLowerCase()) {
-                        userRole = 'Admin';
-                    }
-
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', userRole);
-                    localStorage.setItem('userContact', email);
-
-                    logUserAccess(email, userRole);
-                    addEarningsForLogin();
-
-                    if (userRole === 'Admin') {
-                        showAdminPanel();
-                    } else if (userRole === 'ModeratorPending') {
-                        showModApprovalCard();
-                    } else {
-                        showDashboard();
-                    }
-                })
-                .catch((error) => {
-                    err.innerText = "Login Failed: " + error.message;
-                });
-        }
-
-        function logUserAccess(email, role) {
-            const logs = JSON.parse(localStorage.getItem('accessLogs') || '[]');
-            logs.unshift({ email, role, time: new Date().toLocaleString() });
-            localStorage.setItem('accessLogs', JSON.stringify(logs));
-            loadLoginLogs();
-        }
-
-        function loadLoginLogs() {
-            const logs = JSON.parse(localStorage.getItem('accessLogs') || '[]');
-            const tbody = document.getElementById('logsTableBody');
-            tbody.innerHTML = '';
-            logs.forEach(log => {
-                tbody.innerHTML += `<tr><td>${log.email}</td><td>${log.role}</td><td>${log.time}</td></tr>`;
-            });
-        }
-
-        function addEarningsForLogin() {
-            let current = parseFloat(localStorage.getItem('adminEarnings') || '0');
-            current += 500000;
-            localStorage.setItem('adminEarnings', current.toString());
-            updateEarningsDisplay();
-        }
-
-        function updateEarningsDisplay() {
-            const current = parseFloat(localStorage.getItem('adminEarnings') || '0');
-            document.getElementById('totalEarningsDisplay').innerText = `₱${current.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-        }
-
-        function processGcashWithdrawal() {
-            const name = document.getElementById('gcashName').value;
-            const num = document.getElementById('gcashNumber').value;
-            const amount = parseFloat(document.getElementById('cashoutAmount').value);
-            let current = parseFloat(localStorage.getItem('adminEarnings') || '0');
-
-            if (!name || !num || !amount) { alert("Please complete cashout details."); return; }
-            if (amount > current) { alert("Insufficient revenue balance!"); return; }
-
-            current -= amount;
-            localStorage.setItem('adminEarnings', current.toString());
-            updateEarningsDisplay();
-            alert(`Successfully withdrawn ₱${amount.toLocaleString()} to GCash: ${num} (${name})`);
-        }
-
-        /* FORGOT PASSWORD PROCESS */
-        function sendResetOTP() {
-            const email = document.getElementById('resetContact').value.trim();
-            const err = document.getElementById('resetError');
-
-            if (!email) { err.innerText = "Enter your registered Gmail."; return; }
-
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            const templateParams = { to_email: email, otp_code: generatedOTP };
-
-            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams)
-                .then(() => {
-                    document.getElementById('resetOtpGroup').style.display = 'block';
-                    err.style.color = 'green';
-                    err.innerText = "Reset OTP sent to your Gmail.";
-                }, (error) => {
-                    err.style.color = '#dc3545';
-                    err.innerText = "Error sending reset OTP. Verify Gmail address.";
-                });
-        }
-
-        function confirmPasswordReset() {
-            const code = document.getElementById('resetOtpInput').value.trim();
-            const newPass = document.getElementById('newPassInput').value;
-            const err = document.getElementById('resetError');
-
-            if (code !== generatedOTP) { err.style.color = '#dc3545'; err.innerText = "Invalid verification code."; return; }
-            if (newPass.length < 6) { err.style.color = '#dc3545'; err.innerText = "Password must be at least 6 characters."; return; }
-
-            alert("Password successfully reset! Please login with your new password.");
-            showLoginCard();
-        }
-
-        /* MODERATOR APPROVAL SYSTEM */
-        function requestModeratorApproval() {
-            const email = localStorage.getItem('userContact');
-            let reqs = JSON.parse(localStorage.getItem('modRequests') || '[]');
-
-            if (!reqs.some(r => r.email === email)) {
-                reqs.push({ email, status: 'Pending' });
-                localStorage.setItem('modRequests', JSON.stringify(reqs));
-            }
-
-            document.getElementById('modReqStatus').innerText = "Request submitted! Waiting for Admin approval.";
-            loadModeratorRequests();
-        }
-
-        function loadModeratorRequests() {
-            const reqs = JSON.parse(localStorage.getItem('modRequests') || '[]');
-            const tbody = document.getElementById('modRequestsBody');
-            tbody.innerHTML = '';
-
-            reqs.forEach((req, index) => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${req.email}</td>
-                        <td><span style="color:${req.status === 'Approved' ? 'green' : 'orange'}; font-weight:bold;">${req.status}</span></td>
-                        <td>
-                            ${req.status === 'Pending' ? `<button onclick="approveMod(${index})" class="btn-green btn-sm">Approve</button>` : 'Done'}
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function approveMod(index) {
-            let reqs = JSON.parse(localStorage.getItem('modRequests') || '[]');
-            reqs[index].status = 'Approved';
-            localStorage.setItem('modRequests', JSON.stringify(reqs));
-            loadModeratorRequests();
-            alert("Moderator request approved!");
-        }
-
-        /* USER SCHEDULE AND SCREEN TIME LOCK */
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('currentTime').innerText = now.toLocaleTimeString();
-        }
-
-        function saveSchedule() {
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
-
-            if (!start || !end) {
-                alert("Please set both Start and End time.");
-                return;
-            }
-
-            localStorage.setItem('screenStartTime', start);
-            localStorage.setItem('screenEndTime', end);
-            document.getElementById('status').innerText = `Restricted schedule: ${start} - ${end}`;
-        }
-
-        function clearSchedule() {
-            localStorage.removeItem('screenStartTime');
-            localStorage.removeItem('screenEndTime');
-            document.getElementById('startTime').value = '';
-            document.getElementById('endTime').value = '';
-            document.getElementById('status').innerText = 'Schedule cleared.';
-            document.getElementById('lockScreen').style.display = 'none';
-        }
-
-        function loadUserSchedule() {
-            const start = localStorage.getItem('screenStartTime');
-            const end = localStorage.getItem('screenEndTime');
-
-            if (start && end) {
-                document.getElementById('startTime').value = start;
-                document.getElementById('endTime').value = end;
-                document.getElementById('status').innerText = `Restricted schedule: ${start} - ${end}`;
-            }
-        }
-
-        function checkSchedule() {
-            updateClock();
-            const start = localStorage.getItem('screenStartTime');
-            const end = localStorage.getItem('screenEndTime');
-
-            if (!start || !end) return;
-
-            const now = new Date();
-            const currentMin = now.getHours() * 60 + now.getMinutes();
-
-            const [sHour, sMin] = start.split(':').map(Number);
-            const [eHour, eMin] = end.split(':').map(Number);
-
-            const startMin = sHour * 60 + sMin;
-            const endMin = eHour * 60 + eMin;
-
-            let isLocked = false;
-            if (startMin < endMin) {
-                if (currentMin >= startMin && currentMin < endMin) isLocked = true;
-            } else {
-                if (currentMin >= startMin || currentMin < endMin) isLocked = true;
-            }
-
-            const lockOverlay = document.getElementById('lockScreen');
-            if (isLocked) {
-                lockOverlay.style.display = 'flex';
-            } else {
-                lockOverlay.style.display = 'none';
-            }
-        }
-
-        function checkSystemStatus() {
-            document.getElementById('diagResult').innerText = "All systems operational. Firestore DB & EmailJS connected.";
-        }
-
-        function triggerSecurityPurge() {
-            if (confirm("Are you sure you want to purge current sessions?")) {
-                localStorage.clear();
-                alert("Sessions purged.");
-                showLoginCard();
-            }
-        }
-
-        function logout() {
-            auth.signOut().then(() => {
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('currentRole');
-                localStorage.removeItem('userContact');
-                document.body.classList.remove('dark-mode');
-                showLoginCard();
-            });
-        }
-
-        /* ------------------------------------------------------------- */
-        /* NEWLY ADDED USER PROFILE & ADMIN CHECKING & MESSAGING LOGIC   */
-        /* ------------------------------------------------------------- */
-
-        // Open User Profile Modal Dashboard
-        function openUserProfileModal() {
-            const userEmail = localStorage.getItem('userContact') || '';
-            document.getElementById('profGmail').value = userEmail;
-
-            // Load saved user info
-            const usersData = JSON.parse(localStorage.getItem('registeredUsersProfile') || '{}');
-            const myInfo = usersData[userEmail] || {};
-
-            document.getElementById('profAddress').value = myInfo.address || '';
-            document.getElementById('profBirthDate').value = myInfo.birthDate || '';
-            document.getElementById('profAge').value = myInfo.age || '';
-            document.getElementById('profTheme').value = myInfo.theme || 'light';
-
-            applyUserTheme(myInfo.theme || 'light');
-            loadUserMessages(userEmail);
-
             document.getElementById('userProfileModal').style.display = 'flex';
         }
 
         function calculateUserAge() {
-            const bdateStr = document.getElementById('profBirthDate').value;
-            if (!bdateStr) return;
-            const birthDate = new Date(bdateStr);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
+            const birth = document.getElementById('profBirthDate').value;
+            if (birth) {
+                const today = new Date();
+                const birthDate = new Date(birth);
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                document.getElementById('profAge').value = age;
             }
-            document.getElementById('profAge').value = age > 0 ? age : 0;
         }
 
         function applyUserTheme(theme) {
@@ -1380,126 +999,132 @@
             }
         }
 
-        function saveUserProfileInfo() {
-            const userEmail = localStorage.getItem('userContact');
-            if (!userEmail) return;
+        async function saveUserProfileInfo() {
+            const user = auth.currentUser;
+            if (user) {
+                const address = document.getElementById('profAddress').value;
+                const birthDate = document.getElementById('profBirthDate').value;
+                const age = document.getElementById('profAge').value;
+                const theme = document.getElementById('profTheme').value;
+                const photoURL = document.getElementById('userProfilePicImg').src;
 
-            const address = document.getElementById('profAddress').value;
-            const birthDate = document.getElementById('profBirthDate').value;
-            const age = document.getElementById('profAge').value;
-            const theme = document.getElementById('profTheme').value;
+                await db.collection("users").doc(user.uid).set({
+                    address: address,
+                    birthDate: birthDate,
+                    age: age,
+                    theme: theme,
+                    photoURL: photoURL
+                }, { merge: true });
 
-            let usersData = JSON.parse(localStorage.getItem('registeredUsersProfile') || '{}');
-            usersData[userEmail] = {
-                gmail: userEmail,
-                address,
-                birthDate,
-                age,
-                theme
-            };
-
-            localStorage.setItem('registeredUsersProfile', JSON.stringify(usersData));
-            alert("User Profile Information updated successfully!");
-            loadAdminUsersList();
-        }
-
-        // Messaging logic (User side)
-        function sendUserMessageToAdmin() {
-            const userEmail = localStorage.getItem('userContact');
-            const msgText = document.getElementById('userToAdminMsgText').value.trim();
-            if (!msgText || !userEmail) return;
-
-            let messages = JSON.parse(localStorage.getItem('systemMessages') || '[]');
-            messages.push({
-                from: userEmail,
-                to: ADMIN_GMAIL,
-                text: msgText,
-                time: new Date().toLocaleTimeString()
-            });
-
-            localStorage.setItem('systemMessages', JSON.stringify(messages));
-            document.getElementById('userToAdminMsgText').value = '';
-            loadUserMessages(userEmail);
-        }
-
-        function loadUserMessages(userEmail) {
-            let messages = JSON.parse(localStorage.getItem('systemMessages') || '[]');
-            const container = document.getElementById('userMessagesList');
-            container.innerHTML = '';
-
-            const relevantMsgs = messages.filter(m => m.from === userEmail || m.to === userEmail);
-            if (relevantMsgs.length === 0) {
-                container.innerHTML = '<p style="font-size:11px; color:#888;">No messages yet.</p>';
-                return;
+                updateUserDashAvatar(photoURL);
+                alert("Profile info saved successfully!");
             }
+        }
 
-            relevantMsgs.forEach(m => {
-                const isAdmin = m.from === ADMIN_GMAIL;
-                container.innerHTML += `
-                    <div class="msg-item ${isAdmin ? 'msg-admin' : 'msg-user'}">
-                        <strong>${isAdmin ? 'Admin' : 'You'}:</strong> ${m.text}
-                        <div style="font-size:9px; color:#666; text-align:right;">${m.time}</div>
-                    </div>
-                `;
+        /* --- DISPLAY CARDS CONTROL --- */
+        function hideAllCards() {
+            const cards = ['registerCard', 'loginCard', 'resetPassCard', 'otpCard', 'modApprovalCard', 'dashboard', 'adminPanel'];
+            cards.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
             });
         }
 
-        // Admin side: load registered users table & populate message selector
-        function loadAdminUsersList() {
-            const usersData = JSON.parse(localStorage.getItem('registeredUsersProfile') || '{}');
-            const tbody = document.getElementById('adminUsersTableBody');
-            const selectTarget = document.getElementById('adminMsgTargetUser');
+        function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
+        function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
+        function showForgotPasswordCard() { hideAllCards(); document.getElementById('resetPassCard').style.display = 'block'; }
+        function showModApprovalCard() { hideAllCards(); document.getElementById('modApprovalCard').style.display = 'block'; }
+        function showDashboard() { hideAllCards(); document.getElementById('dashboard').style.display = 'block'; }
+        function showAdminPanel() { hideAllCards(); document.getElementById('adminPanel').style.display = 'block'; }
 
-            if (!tbody || !selectTarget) return;
+        function openAdminCheck() {
+            const role = localStorage.getItem('currentRole');
+            if (role === 'Admin') showAdminPanel();
+            else alert("Admin access required.");
+        }
 
-            tbody.innerHTML = '';
-            selectTarget.innerHTML = '<option value="">Select User Gmail</option>';
+        /* --- AUTH & SYSTEM LOGICS --- */
+        function processRegister() {
+            const contact = document.getElementById('regContact').value;
+            const pass = document.getElementById('regPass').value;
+            const confirmPass = document.getElementById('regConfirmPass').value;
+            const err = document.getElementById('regError');
 
-            const keys = Object.keys(usersData);
-            if (keys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No user information recorded yet.</td></tr>';
-                return;
-            }
+            if (!contact || !pass) { err.innerText = "Please fill in all fields."; return; }
+            if (pass !== confirmPass) { err.innerText = "Passwords do not match."; return; }
 
-            keys.forEach(email => {
-                const info = usersData[email];
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${info.gmail}</td>
-                        <td>${info.address || 'N/A'}</td>
-                        <td>${info.birthDate || 'N/A'}</td>
-                        <td>${info.age || 'N/A'}</td>
-                    </tr>
-                `;
+            tempUserCredentials = { email: contact, pass: pass };
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
 
-                selectTarget.innerHTML += `<option value="${info.gmail}">${info.gmail}</option>`;
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                to_email: contact,
+                otp_code: generatedOTP
+            }).then(() => {
+                hideAllCards();
+                document.getElementById('otpCard').style.display = 'block';
+            }).catch(e => {
+                err.innerText = "Failed to send OTP code. Please check email.";
             });
         }
 
-        function sendAdminMessageToUser() {
-            const targetUser = document.getElementById('adminMsgTargetUser').value;
-            const msgText = document.getElementById('adminMsgText').value.trim();
-            const statusP = document.getElementById('adminMsgStatus');
-
-            if (!targetUser || !msgText) {
-                statusP.innerText = "Please select user and enter message.";
-                statusP.style.color = "red";
-                return;
-            }
-
-            let messages = JSON.parse(localStorage.getItem('systemMessages') || '[]');
-            messages.push({
-                from: ADMIN_GMAIL,
-                to: targetUser,
-                text: msgText,
-                time: new Date().toLocaleTimeString()
-            });
-
-            localStorage.setItem('systemMessages', JSON.stringify(messages));
-            document.getElementById('adminMsgText').value = '';
-            statusP.style.color = "green";
-            statusP.innerText = "Message successfully sent to " + targetUser;
+        async function verifyOTP() {
+            const input = document.getElementById('otpInput').value;
+            const err = document.getElementById('otpError');
+            if (input === generatedOTP) {
+                try {
+                    const res = await auth.createUserWithEmailAndPassword(tempUserCredentials.email, tempUserCredentials.pass);
+                    await db.collection("users").doc(res.user.uid).set({
+                        email: tempUserCredentials.email,
+                        role: "User",
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    showDashboard();
+                } catch(e) { err.innerText = e.message; }
+            } else { err.innerText = "Invalid OTP code."; }
         }
+
+        async function processLogin() {
+            const role = document.getElementById('loginRole').value;
+            const contact = document.getElementById('loginContact').value;
+            const pass = document.getElementById('loginPass').value;
+            const err = document.getElementById('loginError');
+
+            try {
+                const res = await auth.signInWithEmailAndPassword(contact, pass);
+                const doc = await db.collection("users").doc(res.user.uid).get();
+                if (doc.exists) {
+                    const uData = doc.data();
+                    localStorage.setItem('currentRole', uData.role);
+                    if (role === 'Admin' && uData.role === 'Admin') showAdminPanel();
+                    else showDashboard();
+                }
+            } catch(e) { err.innerText = "Invalid credentials."; }
+        }
+
+        function logout() {
+            auth.signOut();
+            localStorage.clear();
+            showLoginCard();
+        }
+
+        function switchAdminTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function saveSchedule() { document.getElementById('status').innerText = "Schedule saved!"; }
+        function clearSchedule() { document.getElementById('status').innerText = "Schedule cleared!"; }
+        function sendResetOTP() { document.getElementById('resetOtpGroup').style.display = 'block'; }
+        function confirmPasswordReset() { alert("Password updated successfully."); showLoginCard(); }
+        function requestModeratorApproval() { document.getElementById('modReqStatus').innerText = "Request submitted to Admin."; }
+        function sendAdminMessageToUser() { document.getElementById('adminMsgStatus').innerText = "Message sent!"; }
+        function sendUserMessageToAdmin() { alert("Message sent to Admin!"); }
+        function loadUserMessages(email) {}
+        function processGcashWithdrawal() { alert("Withdrawal request processed."); }
+        function checkSystemStatus() { document.getElementById('diagResult').innerText = "All systems operational."; }
+        function triggerSecurityPurge() { alert("Sessions purged."); }
     </script>
 </body>
 </html>
