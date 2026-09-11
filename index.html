@@ -75,7 +75,7 @@
             background: var(--card-bg);
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            width: 180px;
+            width: 190px;
             overflow: hidden;
             border: 1px solid var(--border-color);
         }
@@ -88,7 +88,7 @@
             color: var(--text-color);
             text-align: left;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             margin: 0;
         }
 
@@ -152,9 +152,38 @@
         .btn-secondary { background-color: #6c757d; }
         .btn-sm { padding: 4px 8px; font-size: 11px; width: auto; margin: 2px; }
 
-        #dashboard, #otpCard, #loginCard, #adminPanel, #userProfileCard, #resetPassCard, #screenTimeCard { display: none; }
+        #dashboard, #otpCard, #loginCard, #adminPanel, #userProfileCard, #screenTimeCard { display: none; }
         .error-msg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; }
-        .success-msg { color: #28a745; font-size: 12px; margin-top: 8px; font-weight: bold; }
+
+        /* USER PROFILE HEADER IN SCREEN TIME CARD */
+        .user-header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 123, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            border: 1px solid rgba(0, 123, 255, 0.2);
+        }
+        .user-header-bar:hover {
+            background: rgba(0, 123, 255, 0.2);
+        }
+        .user-header-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+        }
+        .user-header-img {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #007bff;
+            background: #eee;
+        }
 
         /* COVER & PROFILE IMAGE STYLES */
         .cover-photo {
@@ -310,16 +339,12 @@
         <button onclick="unlockScreenSystem()" style="width:auto; padding:10px 20px;" class="btn-green">Unlock System</button>
     </div>
 
+    <!-- DYNAMIC TOP MENU -->
     <div class="top-nav">
         <button class="profile-menu-btn" onclick="toggleDropdown()">
             👤 Menu ▾
         </button>
-        <div id="dropdownMenu" class="dropdown-menu">
-            <button onclick="showLoginCard()">👤 Login</button>
-            <button onclick="openUserProfile()">⚙️ User Profile</button>
-            <button onclick="openScreenTimeCard()">⏳ Screen Time Control</button>
-            <button onclick="openAdminCheck()">🛡️ Admin Dashboard</button>
-        </div>
+        <div id="dropdownMenu" class="dropdown-menu"></div>
     </div>
 
     <!-- 1. REGISTRATION CARD -->
@@ -355,7 +380,6 @@
             <label>Select Role:</label>
             <select id="loginRole">
                 <option value="User">User</option>
-                <option value="Moderator">Moderator</option>
                 <option value="Admin">Admin</option>
             </select>
         </div>
@@ -370,10 +394,26 @@
 
         <button onclick="processLogin()">Login</button>
         <p id="loginError" class="error-msg"></p>
+
+        <p style="font-size: 12px; margin-top: 15px;">
+            Don't have an account? <a href="#" onclick="showRegisterCard()" style="color: #007bff; font-weight: bold;">Create New Account</a>
+        </p>
     </div>
 
-    <!-- 3. AUTOMATED SCREEN TIME & POWER CONTROLS CARD -->
+    <!-- 3. USER MAIN DASHBOARD: SCREEN TIME & POWER CONTROLS -->
     <div id="screenTimeCard" class="container">
+        <!-- USER PROFILE QUICK ACCESS BAR -->
+        <div class="user-header-bar" onclick="openUserProfile()">
+            <div class="user-header-info">
+                <img src="https://via.placeholder.com/80" id="dashHeaderPic" class="user-header-img">
+                <div>
+                    <strong id="dashHeaderEmail" style="font-size:13px; color:var(--text-color);">User Account</strong>
+                    <div style="font-size:10px; color:#007bff;">Tap to view Profile & Settings ⚙️</div>
+                </div>
+            </div>
+            <span style="font-size:16px;">➔</span>
+        </div>
+
         <h1>⏱️ Screen Time & Power Controls</h1>
         <p>Schedule automatic power off and lock screen timers.</p>
 
@@ -399,9 +439,13 @@
         <p id="timerStatus" style="font-size:12px; font-weight:bold; margin-top:10px; color:#007bff;"></p>
     </div>
 
-    <!-- 4. USER PROFILE DASHBOARD (WITH MEDIA & TABS) -->
+    <!-- 4. USER PROFILE DETAILS & DASHBOARD -->
     <div id="userProfileCard" class="container" style="padding-top:0;">
-        <div class="cover-photo" id="userCoverBox" onclick="viewFullImage('userCover')">
+        <div style="text-align:left; padding-top:10px;">
+            <button onclick="openScreenTimeCard()" style="width:auto; font-size:11px; padding:4px 10px; background:#6c757d;">⬅️ Back to Screen Control Dashboard</button>
+        </div>
+
+        <div class="cover-photo" id="userCoverBox" onclick="viewFullImage('userCover')" style="margin-top:10px;">
             <div class="profile-img-container">
                 <img src="https://via.placeholder.com/80" id="userProfilePic" class="profile-img" onclick="event.stopPropagation(); viewFullImage('userProfile');">
             </div>
@@ -409,7 +453,7 @@
 
         <div style="margin-top: 40px;">
             <h2 id="userDisplayName" style="margin:0;">User Account Profile</h2>
-            <button onclick="openMediaSelectorModal('user')" style="font-size:11px; padding:4px 10px; width:auto; background:#6c757d;">✏️ Edit Profile Media</button>
+            <button onclick="openMediaSelectorModal('user')" style="font-size:11px; padding:4px 10px; width:auto; background:#6c757d; margin-top:5px;">✏️ Edit Profile Media</button>
         </div>
 
         <!-- USER TABS NAVIGATION -->
@@ -480,8 +524,6 @@
             <h4 style="margin-top:15px; font-size:12px;">Admin Responses to Your Reports:</h4>
             <div id="uReportResponses" style="max-height:150px; overflow-y:auto;"></div>
         </div>
-
-        <button onclick="logout()" class="btn-logout" style="margin-top:15px;">Logout</button>
     </div>
 
     <!-- 5. OTP CARD -->
@@ -496,7 +538,7 @@
 
     <!-- 6. ADMIN DASHBOARD PANEL -->
     <div id="adminPanel" class="container" style="padding-top:0;">
-        <div class="cover-photo" id="adminCoverPhotoBox" onclick="viewFullImage('adminCover')">
+        <div class="cover-photo" id="adminCoverPhotoBox" onclick="viewFullImage('adminCover')" style="margin-top:15px;">
             <div class="profile-img-container">
                 <img src="https://via.placeholder.com/80" id="adminProfileImgPic" class="profile-img" onclick="event.stopPropagation(); viewFullImage('adminProfile');">
             </div>
@@ -513,7 +555,6 @@
         <!-- ADMIN NAVIGATION TABS -->
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchAdminTab('atab-reports')">📩 Reports & Feedback</button>
-            <button class="tab-btn" onclick="switchAdminTab('atab-mods')">🔰 Moderators</button>
             <button class="tab-btn" onclick="switchAdminTab('atab-logs')">📊 Access Logs</button>
         </div>
 
@@ -523,16 +564,7 @@
             <div id="adminReportsList" style="max-height:250px; overflow-y:auto;"></div>
         </div>
 
-        <!-- TAB 2: MODERATORS -->
-        <div id="atab-mods" class="tab-content">
-            <h3>Moderator Requests</h3>
-            <table class="logs-table">
-                <thead><tr><th>Gmail</th><th>Status</th><th>Action</th></tr></thead>
-                <tbody id="modRequestsBody"></tbody>
-            </table>
-        </div>
-
-        <!-- TAB 3: LOGS -->
+        <!-- TAB 2: LOGS -->
         <div id="atab-logs" class="tab-content">
             <h3>System Logs</h3>
             <table class="logs-table">
@@ -540,8 +572,6 @@
                 <tbody id="logsTableBody"></tbody>
             </table>
         </div>
-
-        <button onclick="logout()" class="btn-logout" style="margin-top:15px;">Exit Admin Panel</button>
     </div>
 
     <!-- MODAL FOR MEDIA SELECTION -->
@@ -597,12 +627,14 @@
             toggleThemeMode(savedTheme);
             document.getElementById('themeSelector').value = savedTheme;
 
+            renderMenu();
+
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             const userRole = localStorage.getItem('currentRole');
 
             if (isLoggedIn) {
                 if (userRole === 'Admin') showAdminPanel();
-                else openUserProfile();
+                else openScreenTimeCard();
             } else {
                 showLoginCard();
             }
@@ -612,6 +644,29 @@
             loadAdminReports();
             startPowerScheduleCheck();
         };
+
+        function renderMenu() {
+            const menu = document.getElementById('dropdownMenu');
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const role = localStorage.getItem('currentRole');
+
+            if (!isLoggedIn) {
+                menu.innerHTML = `
+                    <button onclick="showLoginCard()">👤 Login</button>
+                    <button onclick="showRegisterCard()">📝 Create New Account</button>
+                `;
+            } else if (role === 'Admin') {
+                menu.innerHTML = `
+                    <button onclick="showAdminPanel()">🛡️ Admin Dashboard</button>
+                    <button onclick="logout()">🚪 Logout</button>
+                `;
+            } else {
+                menu.innerHTML = `
+                    <button onclick="openScreenTimeCard()">⏱️ Screen Time Control</button>
+                    <button onclick="logout()">🚪 Logout</button>
+                `;
+            }
+        }
 
         function toggleThemeMode(mode) {
             document.documentElement.setAttribute('data-theme', mode);
@@ -635,24 +690,18 @@
 
         function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
         function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
-        function openScreenTimeCard() { hideAllCards(); document.getElementById('screenTimeCard').style.display = 'block'; }
+        
+        function openScreenTimeCard() { 
+            hideAllCards(); 
+            document.getElementById('screenTimeCard').style.display = 'block'; 
+            loadUserProfileData();
+        }
 
         function openUserProfile() {
             hideAllCards();
             document.getElementById('userProfileCard').style.display = 'block';
             loadUserProfileData();
             loadUserReportResponses();
-        }
-
-        function openAdminCheck() {
-            const role = localStorage.getItem('currentRole');
-            if (localStorage.getItem('isLoggedIn') === 'true' && role === 'Admin') {
-                showAdminPanel();
-            } else {
-                alert("Access Restricted: Please login as Admin first.");
-                showLoginCard();
-                document.getElementById('loginRole').value = 'Admin';
-            }
         }
 
         function showAdminPanel() {
@@ -778,7 +827,10 @@
         }
 
         function loadMediaDisplays() {
-            if(localStorage.getItem('userProfile')) document.getElementById('userProfilePic').src = localStorage.getItem('userProfile');
+            const userPic = localStorage.getItem('userProfile') || 'https://via.placeholder.com/80';
+            document.getElementById('userProfilePic').src = userPic;
+            document.getElementById('dashHeaderPic').src = userPic;
+
             if(localStorage.getItem('userCover')) document.getElementById('userCoverBox').style.backgroundImage = `url('${localStorage.getItem('userCover')}')`;
             if(localStorage.getItem('adminProfile')) document.getElementById('adminProfileImgPic').src = localStorage.getItem('adminProfile');
             if(localStorage.getItem('adminCover')) document.getElementById('adminCoverPhotoBox').style.backgroundImage = `url('${localStorage.getItem('adminCover')}')`;
@@ -845,7 +897,10 @@
                 document.getElementById('uSex').value = d.sex || 'Male';
             }
             const gmail = localStorage.getItem('userContact');
-            if (gmail) document.getElementById('userDisplayName').innerText = gmail;
+            if (gmail) {
+                document.getElementById('userDisplayName').innerText = gmail;
+                document.getElementById('dashHeaderEmail').innerText = gmail;
+            }
         }
 
         /* REPORT / FEEDBACK SYSTEM */
@@ -982,7 +1037,8 @@
                 localStorage.setItem('userPassword', tempUserCredentials.pass);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('currentRole', 'User');
-                openUserProfile();
+                renderMenu();
+                openScreenTimeCard();
             } else {
                 alert("Invalid OTP!");
             }
@@ -997,13 +1053,15 @@
                 if (contact === ADMIN_GMAIL && pass === ADMIN_PASS) {
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('currentRole', 'Admin');
+                    renderMenu();
                     showAdminPanel();
                 } else alert("Invalid Admin credentials!");
             } else {
                 if (contact === localStorage.getItem('userContact') && pass === localStorage.getItem('userPassword')) {
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('currentRole', 'User');
-                    openUserProfile();
+                    renderMenu();
+                    openScreenTimeCard();
                 } else alert("Invalid User credentials!");
             }
         }
@@ -1011,6 +1069,7 @@
         function logout() {
             localStorage.setItem('isLoggedIn', 'false');
             localStorage.removeItem('currentRole');
+            renderMenu();
             showLoginCard();
         }
     </script>
