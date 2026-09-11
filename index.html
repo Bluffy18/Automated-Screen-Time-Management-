@@ -4,8 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Automated Screen Time Management</title>
-    <!-- EmailJS SDK para sa totoong Gmail Verification -->
+    <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    
+    <!-- FIREBASE SDKs & REAL-TIME LOGIC INTEGRATION -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBJk0MolYNB4VnbXr6HTXM3ZLCo_V_869c",
+        authDomain: "screen-time-management-9cdfc.firebaseapp.com",
+        databaseURL: "https://screen-time-management-9cdfc-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "screen-time-management-9cdfc",
+        storageBucket: "screen-time-management-9cdfc.firebasestorage.app",
+        messagingSenderId: "910156730244",
+        appId: "1:910156730244:web:80065d24762862458c97d1",
+        measurementId: "G-81NGLP9L4F"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.fbAuth = auth;
+      window.fbDb = db;
+      window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+      window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+      window.signOut = signOut;
+      window.addDoc = addDoc;
+      window.collection = collection;
+      window.serverTimestamp = serverTimestamp;
+
+      // Real-time Database Listener para sa Logs sa Admin Panel
+      const logsQuery = query(collection(db, "user_logs"), orderBy("timestamp", "desc"));
+      onSnapshot(logsQuery, (snapshot) => {
+        const logsTableBody = document.getElementById('logsTableBody');
+        if (!logsTableBody) return;
+        logsTableBody.innerHTML = '';
+        
+        snapshot.forEach((doc) => {
+          const log = doc.data();
+          const dateStr = log.timestamp ? new Date(log.timestamp.toDate()).toLocaleString() : 'Just now';
+          
+          const row = `<tr>
+            <td>${log.email}</td>
+            <td><b>${log.action}</b> (${log.role})</td>
+            <td>${dateStr}</td>
+          </tr>`;
+          logsTableBody.innerHTML += row;
+        });
+      }, (error) => {
+        console.log("Firestore Note: Siguraduhing naka-enable ang Firestore Database.");
+      });
+    </script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -130,15 +184,12 @@
             transition: 0.3s background-color;
         }
         button:hover { opacity: 0.9; }
-        button:disabled { background-color: #a5a5a5; cursor: not-allowed; opacity: 0.7; }
 
         .btn-green { background-color: #28a745; }
         .btn-reset { background-color: #dc3545; }
         .btn-logout { background-color: #6c757d; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-sm { padding: 5px 8px; font-size: 11px; width: auto; margin: 2px; }
 
-        #dashboard, #otpCard, #loginCard, #adminPanel, #resetPassCard, #modApprovalCard { display: none; }
+        #dashboard, #loginCard, #adminPanel { display: none; }
         .error-msg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; }
         .success-msg { color: #28a745; font-size: 12px; margin-top: 8px; font-weight: bold; }
 
@@ -158,7 +209,6 @@
             box-sizing: border-box;
         }
 
-        /* PROFILE AND COVER STYLES */
         .cover-photo {
             width: 100%;
             height: 120px;
@@ -167,7 +217,6 @@
             background-position: center;
             border-radius: 12px 12px 0 0;
             position: relative;
-            cursor: pointer;
         }
         .profile-img-container {
             position: absolute;
@@ -183,44 +232,29 @@
             border: 3px solid white;
             background: #eee;
             object-fit: cover;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .profile-img:hover {
-            transform: scale(1.05);
         }
 
-        /* ADMIN NAVIGATION TABS */
         .admin-nav-tabs {
             display: flex;
             gap: 4px;
-            overflow-x: auto;
             margin-top: 15px;
             padding-bottom: 5px;
             border-bottom: 2px solid #ddd;
         }
         .tab-btn {
-            background: #e9ecef;
-            color: #333;
+            background: #007bff;
+            color: white;
             padding: 6px 12px;
             font-size: 11px;
             border-radius: 6px 6px 0 0;
-            white-space: nowrap;
             width: auto;
             margin: 0;
         }
-        .tab-btn.active {
-            background: #007bff;
-            color: white;
-        }
 
         .tab-content {
-            display: none;
+            display: block;
             text-align: left;
             margin-top: 12px;
-        }
-        .tab-content.active {
-            display: block;
         }
 
         .logs-table {
@@ -233,71 +267,6 @@
             border: 1px solid #ddd;
             padding: 6px;
             text-align: left;
-        }
-
-        .earnings-card {
-            background: linear-gradient(135deg, #11998e, #38ef7d);
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
-            text-align: center;
-            margin-top: 8px;
-        }
-        .earnings-card h4 { margin: 0; font-size: 12px; text-transform: uppercase; }
-        .earnings-card .amount { font-size: 24px; font-weight: bold; margin: 4px 0; }
-
-        /* MODALS */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-box {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            width: 85%;
-            max-width: 320px;
-            text-align: center;
-        }
-        .modal-box button {
-            margin: 6px 0;
-            font-size: 13px;
-        }
-
-        /* FULL IMAGE VIEW MODAL */
-        .fullview-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .fullview-img {
-            max-width: 90%;
-            max-height: 80vh;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            object-fit: contain;
-        }
-        .fullview-close-btn {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            color: white;
-            font-size: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            user-select: none;
         }
     </style>
 </head>
@@ -314,7 +283,7 @@
         </div>
     </div>
 
-    <!-- STRICT LOCK SCREEN OVERLAY -->
+    <!-- LOCK SCREEN OVERLAY -->
     <div id="lockScreen" class="lock-overlay">
         <h2>🔒 Time's Up!</h2>
         <p>Stop using your phone for a while and do something important not to overuse your phones</p>
@@ -340,7 +309,7 @@
             <input type="password" id="regConfirmPass" placeholder="Re-enter password">
         </div>
 
-        <button id="regBtn" onclick="processRegister()" class="btn-green">Register & Send Code</button>
+        <button id="regBtn" onclick="processRegister()" class="btn-green">Register Account</button>
         <p id="regError" class="error-msg"></p>
         
         <p style="font-size: 12px; margin-top: 15px;">
@@ -373,11 +342,6 @@
         </div>
 
         <button onclick="processLogin()">Login</button>
-        
-        <p style="text-align: right; margin-top: 5px;">
-            <a href="#" onclick="showForgotPasswordCard()" style="color: #dc3545; font-size: 12px; text-decoration: none;">Forgot Password?</a>
-        </p>
-
         <p id="loginError" class="error-msg"></p>
 
         <p style="font-size: 12px; margin-top: 15px;">
@@ -385,61 +349,7 @@
         </p>
     </div>
 
-    <!-- 3. FORGOT / RESET PASSWORD CARD -->
-    <div id="resetPassCard" class="container">
-        <h1>Reset Password</h1>
-        <p>Verify your Gmail to set a new password</p>
-
-        <div class="input-group">
-            <label>Registered Gmail Address:</label>
-            <input type="text" id="resetContact" placeholder="Enter Gmail">
-        </div>
-
-        <button id="sendResetBtn" onclick="sendResetOTP()">Send Verification Code</button>
-
-        <div id="resetOtpGroup" style="display: none; margin-top: 15px;">
-            <div class="input-group">
-                <label>Enter 6-Digit Code:</label>
-                <input type="text" id="resetOtpInput" placeholder="Enter code">
-            </div>
-            <div class="input-group">
-                <label>New Password:</label>
-                <input type="password" id="newPassInput" placeholder="Enter new password">
-            </div>
-            <button onclick="confirmPasswordReset()" class="btn-green">Update Password</button>
-        </div>
-
-        <p id="resetError" class="error-msg"></p>
-        <p style="font-size: 12px; margin-top: 15px;">
-            <a href="#" onclick="showLoginCard()" style="color: #007bff;">Back to Login</a>
-        </p>
-    </div>
-
-    <!-- 4. OTP VERIFICATION CARD -->
-    <div id="otpCard" class="container">
-        <h1>Verify Account</h1>
-        <p id="otpMessage">Verification code sent!</p>
-
-        <div class="input-group">
-            <label>Enter 6-Digit Code:</label>
-            <input type="text" id="otpInput" placeholder="Enter code">
-        </div>
-
-        <button onclick="verifyOTP()" class="btn-green">Verify & Complete Sign Up</button>
-        <button id="resendBtn" onclick="resendOTP()" class="btn-secondary" disabled>Resend Code (60s)</button>
-        <p id="otpError" class="error-msg"></p>
-    </div>
-
-    <!-- 5. MODERATOR APPROVAL PERMISSION CARD -->
-    <div id="modApprovalCard" class="container">
-        <h1>Moderator Request</h1>
-        <p>Your OTP is verified! Click below to request approval from System Admin.</p>
-        <button id="reqApproveBtn" onclick="requestModeratorApproval()" class="btn-green">Request Approval</button>
-        <p id="modReqStatus" class="success-msg"></p>
-        <button onclick="logout()" class="btn-logout" style="margin-top:10px;">Back to Login</button>
-    </div>
-
-    <!-- 6. MAIN USER DASHBOARD -->
+    <!-- 3. MAIN USER DASHBOARD -->
     <div id="dashboard" class="container">
         <h1>Screen Time Manager</h1>
         <p>Set your restricted screen time window.</p>
@@ -468,195 +378,59 @@
         <p id="status" class="success-msg"></p>
     </div>
 
-    <!-- 7. ORGANIZED EXCLUSIVE ADMIN PANEL -->
+    <!-- 4. EXCLUSIVE ADMIN PANEL -->
     <div id="adminPanel" class="container" style="padding-top: 0; max-width: 440px;">
-        <div class="cover-photo" id="coverPhotoBox" onclick="viewFullImage('cover')">
+        <div class="cover-photo">
             <div class="profile-img-container">
-                <img src="https://via.placeholder.com/80" id="profileImgPic" class="profile-img" onclick="event.stopPropagation(); viewFullImage('profile');">
+                <img src="https://via.placeholder.com/80" class="profile-img">
             </div>
         </div>
         
         <div style="margin-top: 40px;">
-            <h2 style="border:none; padding:0; margin:0;" id="adminTitleDisplay">John Rey Pelaez Oliva</h2>
-            <small id="adminRoleDisplay">Administrator (System Owner)</small>
-            
-            <div style="margin-top: 8px;">
-                <button onclick="openMediaSelectorModal()" style="font-size: 11px; padding: 5px 12px; width: auto; background: #6c757d;">✏️ Edit Profile Media</button>
-            </div>
+            <h2 style="border:none; padding:0; margin:0;">John Rey Pelaez Oliva</h2>
+            <small>Administrator (System Owner)</small>
         </div>
 
-        <!-- TABS NAVIGATION -->
         <div class="admin-nav-tabs">
-            <button class="tab-btn active" onclick="switchAdminTab('tab-mods')">🔰 Moderators</button>
-            <button class="tab-btn" onclick="switchAdminTab('tab-earnings')">💰 Earnings</button>
-            <button class="tab-btn" onclick="switchAdminTab('tab-logs')">📊 Logs</button>
-            <button class="tab-btn" onclick="switchAdminTab('tab-system')">⚙️ Settings</button>
+            <button class="tab-btn">📊 Access Logs</button>
         </div>
 
-        <!-- TAB 1: MODERATORS -->
-        <div id="tab-mods" class="tab-content active">
-            <h3 style="font-size: 13px; color: #007bff; margin: 5px 0;">Pending Moderator Requests</h3>
-            <div style="max-height: 180px; overflow-y: auto;">
-                <table class="logs-table">
-                    <thead>
-                        <tr>
-                            <th>Gmail / User</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modRequestsBody">
-                        <!-- Pending Rows -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- TAB 2: EARNINGS & GCASH -->
-        <div id="tab-earnings" class="tab-content">
-            <div class="earnings-card">
-                <h4>Total Revenue (₱500,000/Login)</h4>
-                <div class="amount" id="totalEarningsDisplay">₱0.00</div>
-                <small>Real Money Balance</small>
-            </div>
-
-            <div style="margin-top: 10px; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
-                <h4 style="margin: 0 0 5px 0; font-size: 12px; color: #007bff;">GCash Cashout</h4>
-                <div class="input-group" style="margin: 4px 0;">
-                    <label>GCash Name:</label>
-                    <input type="text" id="gcashName" placeholder="Name">
-                </div>
-                <div class="input-group" style="margin: 4px 0;">
-                    <label>GCash Number:</label>
-                    <input type="text" id="gcashNumber" placeholder="09123456789">
-                </div>
-                <div class="input-group" style="margin: 4px 0;">
-                    <label>Amount (₱):</label>
-                    <input type="number" id="cashoutAmount" placeholder="Amount">
-                </div>
-                <button onclick="processGcashWithdrawal()" class="btn-green" style="font-size: 12px; padding: 8px;">Withdraw via GCash</button>
-            </div>
-        </div>
-
-        <!-- TAB 3: LOGS -->
         <div id="tab-logs" class="tab-content">
-            <h3 style="font-size: 13px; color: #007bff; margin: 5px 0;">User Access Logs</h3>
-            <div style="max-height: 180px; overflow-y: auto;">
+            <h3 style="font-size: 13px; color: #007bff; margin: 5px 0;">User Access Logs (Real-time)</h3>
+            <div style="max-height: 250px; overflow-y: auto;">
                 <table class="logs-table">
                     <thead>
                         <tr>
-                            <th>User</th>
-                            <th>Role</th>
+                            <th>User Gmail</th>
+                            <th>Action & Role</th>
                             <th>Date & Time</th>
                         </tr>
                     </thead>
-                    <tbody id="logsTableBody">
-                        <!-- Logs Rows -->
-                    </tbody>
+                    <tbody id="logsTableBody"></tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- TAB 4: SYSTEM SETTINGS -->
-        <div id="tab-system" class="tab-content">
-            <h3 style="font-size: 13px; color: #007bff; margin: 5px 0;">System Security & Diagnostics</h3>
-            <p style="font-size:11px; margin: 2px 0;">Status: <span style="color:green; font-weight:bold;">Operational</span></p>
-            <button onclick="checkSystemStatus()" class="btn-secondary" style="font-size:11px; padding:6px;">Run Diagnostic</button>
-            <p id="diagResult" style="font-size:11px; color:#333; margin-top:5px;"></p>
-            
-            <hr style="margin: 10px 0;">
-            <button onclick="triggerSecurityPurge()" class="btn-reset" style="font-size:11px; padding:6px;">Purge Sessions</button>
         </div>
 
         <button onclick="logout()" class="btn-logout" style="margin-top: 15px;">Exit Admin Panel</button>
     </div>
 
-    <!-- MODAL TO CHOOSE TYPE (PROFILE OR COVER) -->
-    <div id="typeSelectorModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 style="margin-top:0; font-size:16px;">Edit Media</h3>
-            <p style="font-size:12px; color:#666;">Choose what you want to update:</p>
-
-            <button onclick="selectMediaType('profile')" style="background:#007bff;">🖼️ Select Profile Photo</button>
-            <button onclick="selectMediaType('cover')" style="background:#17a2b8;">🖼️ Select Cover Photo</button>
-            <button onclick="closeModal('typeSelectorModal')" class="btn-reset" style="margin-top:10px;">Cancel</button>
-        </div>
-    </div>
-
-    <!-- MODAL TO CHOOSE CAMERA/GALLERY/FILES -->
-    <div id="sourceSelectorModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3 style="margin-top:0; font-size:16px;" id="sourceModalTitle">Select Photo Source</h3>
-            <p id="sourceModalSub" style="font-size:12px; color:#666;">Choose where to get the photo:</p>
-            
-            <button onclick="triggerFileInput('gallery')" style="background:#28a745;">🖼️ Photo Gallery</button>
-            <button onclick="triggerFileInput('camera')" style="background:#007bff;">📷 Take Photo (Camera)</button>
-            <button onclick="triggerFileInput('files')" style="background:#6c757d;">📁 File Manager</button>
-            <button onclick="closeModal('sourceSelectorModal')" class="btn-reset" style="margin-top:10px;">Cancel</button>
-        </div>
-    </div>
-
-    <!-- FULL VIEW IMAGE MODAL -->
-    <div id="fullViewModal" class="fullview-overlay" onclick="closeFullView()">
-        <span class="fullview-close-btn">&times;</span>
-        <img id="fullViewImage" class="fullview-img" src="" alt="Full View">
-    </div>
-
-    <!-- HIDDEN FILE INPUTS -->
-    <input type="file" id="inputGallery" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-    <input type="file" id="inputCamera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(event)">
-    <input type="file" id="inputFiles" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-
     <script>
-        // EMAILJS CONFIGURATION
-        const EMAILJS_PUBLIC_KEY = "2PV1h2_hDzWgqxmT4"; 
-        const EMAILJS_SERVICE_ID = "service_jrpo2006"; 
-        const EMAILJS_TEMPLATE_ID = "template_g6rial5"; 
-
-        (function() {
-            if (EMAILJS_PUBLIC_KEY !== "") {
-                emailjs.init(EMAILJS_PUBLIC_KEY);
-            }
-        })();
-
-        let generatedOTP = null;
-        let tempUserCredentials = {};
-        let timerInterval = null;
-        let currentEditingMedia = 'profile';
-
-        const ADMIN_GMAIL = "johnreypelaezoliva@gmail.com";
-        const ADMIN_PASS = "@adminjohnrey202006";
-
         window.onload = function() {
-            if (!localStorage.getItem('adminBalance')) {
-                localStorage.setItem('adminBalance', '0');
-            }
-
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             const userRole = localStorage.getItem('currentRole');
 
             if (isLoggedIn) {
                 if (userRole === 'Admin') {
                     showAdminPanel();
-                } else if (userRole === 'ModeratorPending') {
-                    showModApprovalCard();
                 } else {
                     showDashboard();
                 }
             } else {
-                const existingUser = localStorage.getItem('userContact');
-                if (existingUser) {
-                    showLoginCard();
-                } else {
-                    showRegisterCard();
-                }
+                showLoginCard();
             }
-
-            loadAdminProfileMedia();
-            loadLoginLogs();
-            loadModeratorRequests();
-            updateEarningsDisplay();
             updateClock();
+            setInterval(updateClock, 1000);
+            setInterval(checkLockSchedule, 1000);
         };
 
         function toggleDropdown() {
@@ -667,18 +441,15 @@
         function hideAllCards() {
             document.getElementById('registerCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('otpCard').style.display = 'none';
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('resetPassCard').style.display = 'none';
-            document.getElementById('modApprovalCard').style.display = 'none';
             document.getElementById('dropdownMenu').style.display = 'none';
         }
 
         function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
         function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
-        function showForgotPasswordCard() { hideAllCards(); document.getElementById('resetPassCard').style.display = 'block'; }
-        function showModApprovalCard() { hideAllCards(); document.getElementById('modApprovalCard').style.display = 'block'; }
+        function showDashboard() { hideAllCards(); document.getElementById('dashboard').style.display = 'block'; }
+        function showAdminPanel() { hideAllCards(); document.getElementById('adminPanel').style.display = 'block'; }
 
         function openAdminCheck() {
             const currentRole = localStorage.getItem('currentRole');
@@ -687,614 +458,137 @@
             if (isLoggedIn && currentRole === 'Admin') {
                 showAdminPanel();
             } else {
-                alert("Access Restricted: Please login with your Admin account first.");
+                alert("Access Restricted: Login with an Admin account.");
                 showLoginCard();
                 document.getElementById('loginRole').value = "Admin";
             }
         }
 
-        function switchAdminTab(tabId) {
-            const tabs = document.querySelectorAll('.tab-content');
-            const btns = document.querySelectorAll('.tab-btn');
-
-            tabs.forEach(tab => tab.classList.remove('active'));
-            btns.forEach(btn => btn.classList.remove('active'));
-
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        function openMediaSelectorModal() {
-            document.getElementById('typeSelectorModal').style.display = 'flex';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        function selectMediaType(type) {
-            currentEditingMedia = type;
-            closeModal('typeSelectorModal');
-
-            if (type === 'profile') {
-                document.getElementById('sourceModalTitle').innerText = "Select Profile Photo";
-                document.getElementById('sourceModalSub').innerText = "Choose source to upload profile picture:";
-            } else {
-                document.getElementById('sourceModalTitle').innerText = "Select Cover Photo";
-                document.getElementById('sourceModalSub').innerText = "Choose source to upload cover picture:";
-            }
-
-            document.getElementById('sourceSelectorModal').style.display = 'flex';
-        }
-
-        function triggerFileInput(source) {
-            closeModal('sourceSelectorModal');
-            if (source === 'gallery') {
-                document.getElementById('inputGallery').click();
-            } else if (source === 'camera') {
-                document.getElementById('inputCamera').click();
-            } else if (source === 'files') {
-                document.getElementById('inputFiles').click();
-            }
-        }
-
-        // IMAGE COMPRESSION TO PREVENT LOCALSTORAGE OVERFLOW
-        function compressAndSaveImage(file, callback) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function (event) {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = function () {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800;
-                    const MAX_HEIGHT = 800;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                    } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-                    callback(compressedDataUrl);
-                };
-            };
-        }
-
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file) {
-                compressAndSaveImage(file, function(imageData) {
-                    if (currentEditingMedia === 'profile') {
-                        localStorage.setItem('adminProfile', imageData);
-                        document.getElementById('profileImgPic').src = imageData;
-                    } else {
-                        localStorage.setItem('adminCover', imageData);
-                        document.getElementById('coverPhotoBox').style.backgroundImage = `url('${imageData}')`;
-                    }
-                    alert(`${currentEditingMedia === 'profile' ? 'Profile Photo' : 'Cover Photo'} updated successfully!`);
-                });
-            }
-        }
-
-        function loadAdminProfileMedia() {
-            const savedCover = localStorage.getItem('adminCover');
-            const savedProfile = localStorage.getItem('adminProfile');
-
-            if (savedCover) {
-                document.getElementById('coverPhotoBox').style.backgroundImage = `url('${savedCover}')`;
-            }
-            if (savedProfile) {
-                document.getElementById('profileImgPic').src = savedProfile;
-            }
-        }
-
-        // FULL VIEW IMAGE FUNCTIONS
-        function viewFullImage(type) {
-            const modal = document.getElementById('fullViewModal');
-            const imgTarget = document.getElementById('fullViewImage');
-
-            if (type === 'profile') {
-                const savedProfile = localStorage.getItem('adminProfile') || document.getElementById('profileImgPic').src;
-                imgTarget.src = savedProfile;
-            } else if (type === 'cover') {
-                const savedCover = localStorage.getItem('adminCover');
-                if (savedCover) {
-                    imgTarget.src = savedCover;
-                } else {
-                    alert("No custom cover photo uploaded yet.");
-                    return;
-                }
-            }
-            modal.style.display = 'flex';
-        }
-
-        function closeFullView() {
-            document.getElementById('fullViewModal').style.display = 'none';
-        }
-
-        async function sendVerificationCode(contact) {
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-
+        async function logActivityToFirebase(email, role, action) {
             try {
-                const templateParams = {
-                    to_email: contact,
-                    otp_code: generatedOTP
-                };
-
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                return true;
-            } catch (error) {
-                console.error("EmailJS Error:", error);
-                alert("Failed to send email. Check internet connection.");
-                return false;
+                if (window.fbDb && window.addDoc) {
+                    await window.addDoc(window.collection(window.fbDb, "user_logs"), {
+                        email: email,
+                        role: role,
+                        action: action,
+                        timestamp: window.serverTimestamp()
+                    });
+                }
+            } catch (e) {
+                console.error("Error logging to Firebase: ", e);
             }
         }
 
         async function processRegister() {
-            const contact = document.getElementById('regContact').value.trim();
+            const email = document.getElementById('regContact').value;
             const pass = document.getElementById('regPass').value;
             const confirmPass = document.getElementById('regConfirmPass').value;
-            const errorElement = document.getElementById('regError');
-            const regBtn = document.getElementById('regBtn');
+            const errorMsg = document.getElementById('regError');
 
-            if (!contact || !pass || !confirmPass) {
-                errorElement.innerText = 'Please fill out all fields!';
+            if (!email || !pass) {
+                errorMsg.innerText = "Please fill in all fields.";
                 return;
             }
-
-            if (!contact.includes('@')) {
-                errorElement.innerText = 'Please enter a valid Gmail address!';
-                return;
-            }
-
             if (pass !== confirmPass) {
-                errorElement.innerText = 'Passwords do not match!';
+                errorMsg.innerText = "Passwords do not match!";
                 return;
             }
-
-            regBtn.disabled = true;
-            regBtn.innerText = 'Sending Code...';
-
-            tempUserCredentials = { contact, pass };
-            const sentSuccess = await sendVerificationCode(contact);
-
-            regBtn.disabled = false;
-            regBtn.innerText = 'Register & Send Code';
-
-            if (sentSuccess) {
-                errorElement.innerText = '';
-                showOTPCard(contact);
-            } else {
-                errorElement.innerText = 'Failed to send code. Please try again.';
-            }
-        }
-
-        function showOTPCard(contact) {
-            hideAllCards();
-            document.getElementById('otpCard').style.display = 'block';
-            document.getElementById('otpMessage').innerText = `Verification code sent to ${contact}`;
-            startResendTimer();
-        }
-
-        function startResendTimer() {
-            let timeLeft = 60;
-            const resendBtn = document.getElementById('resendBtn');
-            resendBtn.disabled = true;
-            
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    resendBtn.innerText = 'Resend Code';
-                    resendBtn.disabled = false;
-                } else {
-                    resendBtn.innerText = `Resend Code (${timeLeft}s)`;
-                    timeLeft--;
-                }
-            }, 1000);
-        }
-
-        async function resendOTP() {
-            if (tempUserCredentials.contact) {
-                const resendBtn = document.getElementById('resendBtn');
-                resendBtn.disabled = true;
-                resendBtn.innerText = 'Sending...';
-
-                const sentSuccess = await sendVerificationCode(tempUserCredentials.contact);
-                if (sentSuccess) {
-                    document.getElementById('otpError').innerText = '';
-                    startResendTimer();
-                } else {
-                    resendBtn.disabled = false;
-                    resendBtn.innerText = 'Resend Code';
-                }
-            }
-        }
-
-        function verifyOTP() {
-            const inputOTP = document.getElementById('otpInput').value.trim();
-            const otpError = document.getElementById('otpError');
-
-            if (inputOTP === generatedOTP) {
-                localStorage.setItem('userContact', tempUserCredentials.contact);
-                localStorage.setItem('userPassword', tempUserCredentials.pass);
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentRole', 'User');
-
-                recordLoginLog(tempUserCredentials.contact, 'User');
-                addAdminEarnings(500000);
-
-                otpError.innerText = '';
-                clearInterval(timerInterval);
-                showDashboard();
-            } else {
-                otpError.innerText = 'Incorrect verification code. Try again!';
-            }
-        }
-
-        function processLogin() {
-            const role = document.getElementById('loginRole').value;
-            const contact = document.getElementById('loginContact').value.trim();
-            const pass = document.getElementById('loginPass').value;
-            const loginError = document.getElementById('loginError');
-
-            const savedContact = localStorage.getItem('userContact');
-            const savedPass = localStorage.getItem('userPassword');
-
-            if (role === 'Admin') {
-                if (contact === ADMIN_GMAIL && pass === ADMIN_PASS) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', 'Admin');
-                    recordLoginLog(contact, 'Admin');
-                    showAdminPanel();
-                    return;
-                } else {
-                    loginError.innerText = 'Invalid Admin email or password!';
-                    return;
-                }
-            }
-
-            if (role === 'Moderator') {
-                if (contact && pass) {
-                    let modStatus = getModStatus(contact);
-                    if (modStatus === 'Approved') {
-                        localStorage.setItem('isLoggedIn', 'true');
-                        localStorage.setItem('currentRole', 'Moderator');
-                        recordLoginLog(contact, 'Moderator');
-                        addAdminEarnings(500000);
-                        showDashboard();
-                    } else if (modStatus === 'Rejected') {
-                        loginError.innerText = 'Your Moderator request was REJECTED by Admin!';
-                    } else {
-                        localStorage.setItem('isLoggedIn', 'true');
-                        localStorage.setItem('currentRole', 'ModeratorPending');
-                        localStorage.setItem('pendingModGmail', contact);
-                        showModApprovalCard();
-                    }
-                    return;
-                } else {
-                    loginError.innerText = 'Please input Gmail and Password!';
-                    return;
-                }
-            }
-
-            if (contact === savedContact && pass === savedPass) {
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentRole', 'User');
-                recordLoginLog(contact, 'User');
-                addAdminEarnings(500000);
-                loginError.innerText = '';
-                showDashboard();
-            } else {
-                loginError.innerText = 'Invalid credentials or password. Try Forgot Password.';
-            }
-        }
-
-        async function requestModeratorApproval() {
-            const gmail = localStorage.getItem('pendingModGmail') || document.getElementById('loginContact').value;
-            const btn = document.getElementById('reqApproveBtn');
-            const status = document.getElementById('modReqStatus');
-
-            btn.disabled = true;
-            btn.innerText = "Sending Request...";
-
-            addModRequest(gmail, 'Pending');
 
             try {
-                const templateParams = {
-                    to_email: ADMIN_GMAIL,
-                    otp_code: `User Request: ${gmail} is requesting Moderator Status in system!`
-                };
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-            } catch(e) {
-                console.log("Admin notification sent or logged");
-            }
-
-            btn.disabled = false;
-            btn.innerText = "Request Approval";
-            status.innerText = "Approval Request Sent to Admin Gmail! Please wait for Admin approval.";
-        }
-
-        function getModStatus(gmail) {
-            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
-            let found = requests.find(r => r.gmail === gmail);
-            return found ? found.status : 'None';
-        }
-
-        function addModRequest(gmail, status) {
-            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
-            let index = requests.findIndex(r => r.gmail === gmail);
-            if (index >= 0) {
-                requests[index].status = status;
-            } else {
-                requests.push({ gmail, status });
-            }
-            localStorage.setItem('modRequests', JSON.stringify(requests));
-            loadModeratorRequests();
-        }
-
-        function loadModeratorRequests() {
-            const tbody = document.getElementById('modRequestsBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
-            if (requests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No Pending Requests</td></tr>';
-                return;
-            }
-
-            requests.forEach(req => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${req.gmail}</td>
-                    <td><strong>${req.status}</strong></td>
-                    <td>
-                        <button onclick="setModAction('${req.gmail}', 'Approved')" class="btn-green btn-sm">Approve</button>
-                        <button onclick="setModAction('${req.gmail}', 'Rejected')" class="btn-reset btn-sm">Reject</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function setModAction(gmail, action) {
-            addModRequest(gmail, action);
-            alert(`User ${gmail} status updated to: ${action}`);
-            loadModeratorRequests();
-        }
-
-        function addAdminEarnings(amount) {
-            let current = parseFloat(localStorage.getItem('adminBalance') || '0');
-            current += amount;
-            localStorage.setItem('adminBalance', current.toString());
-            updateEarningsDisplay();
-        }
-
-        function updateEarningsDisplay() {
-            const current = parseFloat(localStorage.getItem('adminBalance') || '0');
-            const display = document.getElementById('totalEarningsDisplay');
-            if (display) {
-                display.innerText = `₱${current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            }
-        }
-
-        function processGcashWithdrawal() {
-            const name = document.getElementById('gcashName').value.trim();
-            const number = document.getElementById('gcashNumber').value.trim();
-            const amount = parseFloat(document.getElementById('cashoutAmount').value);
-            let currentBalance = parseFloat(localStorage.getItem('adminBalance') || '0');
-
-            if (!name || !number || isNaN(amount) || amount <= 0) {
-                alert("Please fill in all GCash details and valid amount!");
-                return;
-            }
-
-            if (amount > currentBalance) {
-                alert("Insufficient balance! Your current balance is ₱" + currentBalance.toLocaleString());
-                return;
-            }
-
-            currentBalance -= amount;
-            localStorage.setItem('adminBalance', currentBalance.toString());
-            updateEarningsDisplay();
-
-            alert(`Real Money Cashout Request Sent!\n\nAmount: ₱${amount.toLocaleString()}\nGCash Name: ${name}\nGCash Number: ${number}\nRemaining Balance: ₱${currentBalance.toLocaleString()}`);
-
-            document.getElementById('gcashName').value = '';
-            document.getElementById('gcashNumber').value = '';
-            document.getElementById('cashoutAmount').value = '';
-        }
-
-        async function sendResetOTP() {
-            const contact = document.getElementById('resetContact').value.trim();
-            const resetError = document.getElementById('resetError');
-            const sendResetBtn = document.getElementById('sendResetBtn');
-
-            if (!contact) {
-                resetError.innerText = "Please enter your Gmail address.";
-                return;
-            }
-
-            sendResetBtn.disabled = true;
-            sendResetBtn.innerText = "Sending OTP...";
-
-            tempUserCredentials.contact = contact;
-            const sent = await sendVerificationCode(contact);
-
-            sendResetBtn.disabled = false;
-            sendResetBtn.innerText = "Send Verification Code";
-
-            if (sent) {
-                resetError.innerText = "";
-                document.getElementById('resetOtpGroup').style.display = "block";
-            } else {
-                resetError.innerText = "Failed to send reset code.";
-            }
-        }
-
-        function confirmPasswordReset() {
-            const inputOTP = document.getElementById('resetOtpInput').value.trim();
-            const newPass = document.getElementById('newPassInput').value;
-            const resetError = document.getElementById('resetError');
-
-            if (inputOTP === generatedOTP && newPass !== "") {
-                localStorage.setItem('userPassword', newPass);
-                alert("Password updated successfully! Please login with your new password.");
+                await window.createUserWithEmailAndPassword(window.fbAuth, email, pass);
+                await logActivityToFirebase(email, "User", "Sign Up");
+                alert("Account created successfully!");
                 showLoginCard();
-            } else {
-                resetError.innerText = "Invalid OTP or password is empty!";
+            } catch (error) {
+                errorMsg.innerText = error.message;
             }
         }
 
-        function recordLoginLog(user, role) {
-            let logs = JSON.parse(localStorage.getItem('systemLogs') || '[]');
-            const now = new Date();
-            const timeString = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+        async function processLogin() {
+            const email = document.getElementById('loginContact').value;
+            const pass = document.getElementById('loginPass').value;
+            const role = document.getElementById('loginRole').value;
+            const errorMsg = document.getElementById('loginError');
 
-            logs.unshift({ user, role, time: timeString });
-            if (logs.length > 20) logs.pop();
-
-            localStorage.setItem('systemLogs', JSON.stringify(logs));
-            loadLoginLogs();
-        }
-
-        function loadLoginLogs() {
-            const tbody = document.getElementById('logsTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            
-            let logs = JSON.parse(localStorage.getItem('systemLogs') || '[]');
-            if (logs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No login logs found</td></tr>';
+            if (!email || !pass) {
+                errorMsg.innerText = "Please enter email and password.";
                 return;
             }
 
-            logs.forEach(log => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${log.user}</td><td>${log.role}</td><td>${log.time}</td>`;
-                tbody.appendChild(tr);
-            });
-        }
+            try {
+                await window.signInWithEmailAndPassword(window.fbAuth, email, pass);
+                await logActivityToFirebase(email, role, "Login");
 
-        function checkSystemStatus() {
-            document.getElementById('diagResult').innerText = "Diagnostics Complete:\nMemory Check: OK\nDatabase: Secure\nSpam Counter: 0\nVersion: 3.2 Full View Active";
-        }
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentRole', role);
+                localStorage.setItem('userContact', email);
 
-        function triggerSecurityPurge() {
-            alert("Security Protocol Activated: All unverified sessions purged.");
-        }
-
-        function logout() {
-            localStorage.setItem('isLoggedIn', 'false');
-            localStorage.removeItem('currentRole');
-            localStorage.removeItem('pendingModGmail');
-            showLoginCard();
-        }
-
-        function showDashboard() {
-            hideAllCards();
-            document.getElementById('dashboard').style.display = 'block';
-
-            const savedStart = localStorage.getItem('startTime');
-            const savedEnd = localStorage.getItem('endTime');
-
-            if (savedStart && savedEnd) {
-                document.getElementById('startTime').value = savedStart;
-                document.getElementById('endTime').value = savedEnd;
-                document.getElementById('status').innerText = `Restricted schedule: ${savedStart} - ${savedEnd}`;
+                if (role === 'Admin') {
+                    showAdminPanel();
+                } else {
+                    showDashboard();
+                }
+            } catch (error) {
+                errorMsg.innerText = "Login failed: " + error.message;
             }
         }
 
-        function showAdminPanel() {
-            hideAllCards();
-            document.getElementById('adminPanel').style.display = 'block';
-            loadAdminProfileMedia();
-            loadLoginLogs();
-            loadModeratorRequests();
-            updateEarningsDisplay();
+        async function logout() {
+            const email = localStorage.getItem('userContact') || "Unknown User";
+            const role = localStorage.getItem('currentRole') || "User";
+
+            await logActivityToFirebase(email, role, "Logout");
+
+            try {
+                await window.signOut(window.fbAuth);
+            } catch(e) {}
+
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('currentRole');
+            localStorage.removeItem('userContact');
+
+            alert("Logged out successfully.");
+            showLoginCard();
         }
 
         function updateClock() {
             const now = new Date();
             const clockEl = document.getElementById('currentTime');
             if (clockEl) clockEl.innerText = now.toLocaleTimeString();
-
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const startScheduleTime = localStorage.getItem('startTime');
-            const endScheduleTime = localStorage.getItem('endTime');
-
-            if (isLoggedIn && startScheduleTime && endScheduleTime) {
-                const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-                const [startHours, startMins] = startScheduleTime.split(':').map(Number);
-                const startMinutes = startHours * 60 + startMins;
-
-                const [endHours, endMins] = endScheduleTime.split(':').map(Number);
-                const endMinutes = endHours * 60 + endMins;
-
-                let isLocked = false;
-
-                if (startMinutes < endMinutes) {
-                    if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-                        isLocked = true;
-                    }
-                } else {
-                    if (currentMinutes >= startMinutes || currentMinutes < endMinutes) {
-                        isLocked = true;
-                    }
-                }
-
-                if (isLocked) {
-                    document.getElementById('lockScreen').style.display = 'flex';
-                } else {
-                    document.getElementById('lockScreen').style.display = 'none';
-                }
-            } else {
-                document.getElementById('lockScreen').style.display = 'none';
-            }
         }
-
-        setInterval(updateClock, 1000);
 
         function saveSchedule() {
             const start = document.getElementById('startTime').value;
             const end = document.getElementById('endTime').value;
-            
             if (!start || !end) {
-                alert('Please select both lock start and lock end times!');
+                alert("Please select both start and end time!");
                 return;
             }
-
-            localStorage.setItem('startTime', start);
-            localStorage.setItem('endTime', end);
-
-            document.getElementById('status').innerText = `Restricted window active: ${start} to ${end}`;
-            updateClock();
+            localStorage.setItem('lockStart', start);
+            localStorage.setItem('lockEnd', end);
+            document.getElementById('status').innerText = `Schedule saved: ${start} - ${end}`;
         }
 
         function clearSchedule() {
-            localStorage.removeItem('startTime');
-            localStorage.removeItem('endTime');
-            if (document.getElementById('startTime')) document.getElementById('startTime').value = '';
-            if (document.getElementById('endTime')) document.getElementById('endTime').value = '';
-            if (document.getElementById('status')) document.getElementById('status').innerText = 'Schedule cleared.';
-            updateClock();
+            localStorage.removeItem('lockStart');
+            localStorage.removeItem('lockEnd');
+            document.getElementById('status').innerText = "Schedule cleared!";
+            document.getElementById('lockScreen').style.display = 'none';
+        }
+
+        function checkLockSchedule() {
+            const start = localStorage.getItem('lockStart');
+            const end = localStorage.getItem('lockEnd');
+            if (!start || !end) return;
+
+            const now = new Date();
+            const currentHM = now.toTimeString().substring(0, 5);
+
+            if (currentHM >= start && currentHM < end) {
+                document.getElementById('lockScreen').style.display = 'flex';
+            } else {
+                document.getElementById('lockScreen').style.display = 'none';
+            }
         }
     </script>
 </body>
