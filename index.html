@@ -1,135 +1,67 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automated System & User Management</title>
+    <title>Automated Screen Time Management</title>
+    <!-- EmailJS SDK para sa totoong Gmail Verification -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-color: #1a1a1a;
-            --text-sub: #555;
-            --border-color: #ccc;
-            --input-bg: rgba(255, 255, 255, 0.9);
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: rgba(30, 30, 30, 0.95);
-            --text-color: #f1f1f1;
-            --text-sub: #aaa;
-            --border-color: #444;
-            --input-bg: #2a2a2a;
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-            transition: background 0.3s, color 0.3s;
-        }
-
         body {
+            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: var(--bg-color);
             background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('IMG_7340.jpeg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-            color: var(--text-color);
-        }
-
-        .top-nav {
-            position: fixed;
-            top: 15px;
-            right: 20px;
-            z-index: 1000;
-        }
-
-        .profile-menu-btn {
-            background: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 40px;
-            background: var(--card-bg);
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            width: 190px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        .dropdown-menu button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            background: none;
-            color: var(--text-color);
-            text-align: left;
-            cursor: pointer;
-            font-size: 13px;
-            margin: 0;
-        }
-
-        .dropdown-menu button:hover {
-            background: rgba(0,123,255,0.1);
         }
 
         .container {
-            background: var(--card-bg);
-            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.88);
             backdrop-filter: blur(10px);
-            padding: 20px;
+            padding: 25px;
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 440px;
+            max-width: 360px;
             width: 90%;
-            margin: 20px 0;
-            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        h1 { font-size: 20px; margin-bottom: 5px; }
-        h2 { font-size: 15px; margin-top: 10px; }
-        p { font-size: 13px; color: var(--text-sub); }
+        h1 { font-size: 22px; color: #1a1a1a; margin-bottom: 5px; }
+        h2 { font-size: 16px; color: #444; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; }
+        p { font-size: 14px; color: #555; }
+
+        .clock-box {
+            background: rgba(0, 123, 255, 0.08);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 123, 255, 0.15);
+        }
+        .clock { font-size: 24px; font-weight: bold; color: #007bff; }
 
         .input-group {
-            margin: 8px 0;
+            margin: 12px 0;
             text-align: left;
         }
-        label { font-size: 11px; font-weight: bold; color: var(--text-color); }
+        label { font-size: 13px; font-weight: bold; color: #333; }
         
-        input[type="text"], input[type="password"], input[type="time"], input[type="number"], input[type="date"], select, textarea {
+        input[type="text"], input[type="password"], input[type="time"] {
             width: 100%;
-            padding: 8px;
-            margin-top: 3px;
-            border: 1px solid var(--border-color);
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
-            background: var(--input-bg);
-            color: var(--text-color);
-            font-size: 13px;
+            background: rgba(255, 255, 255, 0.85);
         }
 
         button {
@@ -137,214 +69,64 @@
             background-color: #007bff;
             color: white;
             border: none;
-            padding: 10px;
-            font-size: 14px;
+            padding: 12px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 10px;
+            transition: 0.3s background-color;
         }
         button:hover { opacity: 0.9; }
+        button:disabled { background-color: #a5a5a5; cursor: not-allowed; opacity: 0.7; }
 
         .btn-green { background-color: #28a745; }
         .btn-reset { background-color: #dc3545; }
         .btn-logout { background-color: #6c757d; }
         .btn-secondary { background-color: #6c757d; }
-        .btn-sm { padding: 4px 8px; font-size: 11px; width: auto; margin: 2px; }
 
-        #dashboard, #otpCard, #loginCard, #adminPanel, #userProfileCard, #screenTimeCard { display: none; }
-        .error-msg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; }
+        #dashboard, #otpCard, #loginCard { display: none; }
+        .error-msg { color: #dc3545; font-size: 13px; margin-top: 10px; font-weight: bold; }
+        .success-msg { color: #28a745; font-size: 13px; margin-top: 10px; font-weight: bold; }
 
-        /* USER PROFILE HEADER IN SCREEN TIME CARD */
-        .user-header-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(0, 123, 255, 0.1);
-            padding: 8px 12px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            border: 1px solid rgba(0, 123, 255, 0.2);
-        }
-        .user-header-bar:hover {
-            background: rgba(0, 123, 255, 0.2);
-        }
-        .user-header-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-align: left;
-        }
-        .user-header-img {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #007bff;
-            background: #eee;
-        }
-
-        /* COVER & PROFILE IMAGE STYLES */
-        .cover-photo {
-            width: 100%;
-            height: 120px;
-            background-color: #007bff;
-            background-size: cover;
-            background-position: center;
-            border-radius: 12px 12px 0 0;
-            position: relative;
-            cursor: pointer;
-        }
-        .profile-img-container {
-            position: absolute;
-            bottom: -35px;
-            left: calc(50% - 40px);
-            width: 80px;
-            height: 80px;
-        }
-        .profile-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 3px solid white;
-            background: #eee;
-            object-fit: cover;
-            cursor: pointer;
-        }
-
-        /* NAVIGATION TABS */
-        .nav-tabs {
-            display: flex;
-            gap: 4px;
-            overflow-x: auto;
-            margin-top: 15px;
-            padding-bottom: 5px;
-            border-bottom: 2px solid var(--border-color);
-        }
-        .tab-btn {
-            background: var(--input-bg);
-            color: var(--text-color);
-            padding: 6px 12px;
-            font-size: 11px;
-            border-radius: 6px 6px 0 0;
-            white-space: nowrap;
-            width: auto;
-            margin: 0;
-        }
-        .tab-btn.active {
-            background: #007bff;
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-            text-align: left;
-            margin-top: 12px;
-        }
-        .tab-content.active {
-            display: block;
-        }
-
-        .logs-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-            margin-top: 5px;
-        }
-        .logs-table th, .logs-table td {
-            border: 1px solid var(--border-color);
-            padding: 6px;
-            text-align: left;
-        }
-
-        /* MODALS */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-box {
-            background: var(--card-bg);
-            color: var(--text-color);
-            padding: 20px;
-            border-radius: 12px;
-            width: 85%;
-            max-width: 320px;
-            text-align: center;
-            border: 1px solid var(--border-color);
-        }
-
-        /* FULL VIEW MODAL */
-        .fullview-overlay {
+        /* STRICT LOCK SCREEN OVERLAY (NO UNLOCK/LOGOUT BUTTONS) */
+        .lock-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 10000;
-            justify-content: center;
-            align-items: center;
-        }
-        .fullview-img {
-            max-width: 90%;
-            max-height: 80vh;
-            border-radius: 8px;
-            object-fit: contain;
-        }
-        .fullview-close-btn {
-            position: absolute;
-            top: 20px; right: 25px;
+            background-color: #dc3545;
             color: white;
-            font-size: 30px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .report-box {
-            background: var(--input-bg);
-            border: 1px solid var(--border-color);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 12px;
-        }
-
-        /* LOCK SCREEN OVERLAY */
-        #lockScreenOverlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000;
-            color: #fff;
             z-index: 99999;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+        .lock-overlay h2 { 
+            font-size: 32px; 
+            margin-bottom: 20px; 
+            border: none; 
+            padding: 0; 
+            color: #ffffff; 
+        }
+        .lock-overlay p { 
+            font-size: 20px; 
+            color: #ffffff; 
+            line-height: 1.5; 
+            max-width: 400px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
 
-    <!-- SCREEN LOCK OVERLAY -->
-    <div id="lockScreenOverlay">
-        <h1>🔒 SCREEN LOCKED</h1>
-        <p>Screen time limit reached or system auto-locked.</p>
-        <button onclick="unlockScreenSystem()" style="width:auto; padding:10px 20px;" class="btn-green">Unlock System</button>
-    </div>
-
-    <!-- DYNAMIC TOP MENU -->
-    <div class="top-nav">
-        <button class="profile-menu-btn" onclick="toggleDropdown()">
-            👤 Menu ▾
-        </button>
-        <div id="dropdownMenu" class="dropdown-menu"></div>
+    <!-- STRICT LOCK SCREEN OVERLAY -->
+    <div id="lockScreen" class="lock-overlay">
+        <h2>🔒 Time's Up!</h2>
+        <p>Stop using your phone for a while and do something important not to overuse your phones</p>
     </div>
 
     <!-- 1. REGISTRATION CARD -->
@@ -354,12 +136,14 @@
 
         <div class="input-group">
             <label>Gmail Address:</label>
-            <input type="text" id="regContact" placeholder="user@gmail.com">
+            <input type="text" id="regContact" placeholder="e.g. user@gmail.com">
         </div>
+
         <div class="input-group">
             <label>Password:</label>
             <input type="password" id="regPass" placeholder="Create password">
         </div>
+
         <div class="input-group">
             <label>Confirm Password:</label>
             <input type="password" id="regConfirmPass" placeholder="Re-enter password">
@@ -368,7 +152,7 @@
         <button id="regBtn" onclick="processRegister()" class="btn-green">Register & Send Code</button>
         <p id="regError" class="error-msg"></p>
         
-        <p style="font-size: 12px; margin-top: 15px;">
+        <p style="font-size: 13px; margin-top: 15px;">
             Already have an account? <a href="#" onclick="showLoginCard()" style="color: #007bff; font-weight: bold;">Login here</a>
         </p>
     </div>
@@ -376,17 +160,13 @@
     <!-- 2. LOGIN CARD -->
     <div id="loginCard" class="container">
         <h1>Account Login</h1>
-        <div class="input-group">
-            <label>Select Role:</label>
-            <select id="loginRole">
-                <option value="User">User</option>
-                <option value="Admin">Admin</option>
-            </select>
-        </div>
+        <p>Enter your credentials to continue</p>
+
         <div class="input-group">
             <label>Gmail Address:</label>
             <input type="text" id="loginContact" placeholder="Enter Gmail">
         </div>
+
         <div class="input-group">
             <label>Password:</label>
             <input type="password" id="loginPass" placeholder="Enter password">
@@ -395,683 +175,328 @@
         <button onclick="processLogin()">Login</button>
         <p id="loginError" class="error-msg"></p>
 
-        <p style="font-size: 12px; margin-top: 15px;">
-            Don't have an account? <a href="#" onclick="showRegisterCard()" style="color: #007bff; font-weight: bold;">Create New Account</a>
+        <p style="font-size: 13px; margin-top: 15px;">
+            Need an account? <a href="#" onclick="showRegisterCard()" style="color: #007bff; font-weight: bold;">Register here</a>
         </p>
     </div>
 
-    <!-- 3. USER MAIN DASHBOARD: SCREEN TIME & POWER CONTROLS -->
-    <div id="screenTimeCard" class="container">
-        <!-- USER PROFILE QUICK ACCESS BAR -->
-        <div class="user-header-bar" onclick="openUserProfile()">
-            <div class="user-header-info">
-                <img src="https://via.placeholder.com/80" id="dashHeaderPic" class="user-header-img">
-                <div>
-                    <strong id="dashHeaderEmail" style="font-size:13px; color:var(--text-color);">User Account</strong>
-                    <div style="font-size:10px; color:#007bff;">Tap to view Profile & Settings ⚙️</div>
-                </div>
-            </div>
-            <span style="font-size:16px;">➔</span>
-        </div>
-
-        <h1>⏱️ Screen Time & Power Controls</h1>
-        <p>Schedule automatic power off and lock screen timers.</p>
-
-        <div class="input-group">
-            <label>Scheduled Power Off Time:</label>
-            <input type="time" id="powerOffTime">
-        </div>
-        <div class="input-group">
-            <label>Scheduled Power On Time:</label>
-            <input type="time" id="powerOnTime">
-        </div>
-        <button onclick="savePowerSchedule()" class="btn-green">Save Power Schedule</button>
-
-        <hr style="margin: 15px 0; border:0; border-top:1px solid var(--border-color);">
-
-        <div class="input-group">
-            <label>Screen Timeout Lock (Minutes):</label>
-            <input type="number" id="screenTimeoutMin" placeholder="e.g. 5">
-        </div>
-        <button onclick="startScreenTimer()" class="btn-secondary">Start Screen Lock Timer</button>
-        <button onclick="lockScreenNow()" class="btn-reset" style="margin-top:5px;">Lock Screen Immediately</button>
-
-        <p id="timerStatus" style="font-size:12px; font-weight:bold; margin-top:10px; color:#007bff;"></p>
-    </div>
-
-    <!-- 4. USER PROFILE DETAILS & DASHBOARD -->
-    <div id="userProfileCard" class="container" style="padding-top:0;">
-        <div style="text-align:left; padding-top:10px;">
-            <button onclick="openScreenTimeCard()" style="width:auto; font-size:11px; padding:4px 10px; background:#6c757d;">⬅️ Back to Screen Control Dashboard</button>
-        </div>
-
-        <div class="cover-photo" id="userCoverBox" onclick="viewFullImage('userCover')" style="margin-top:10px;">
-            <div class="profile-img-container">
-                <img src="https://via.placeholder.com/80" id="userProfilePic" class="profile-img" onclick="event.stopPropagation(); viewFullImage('userProfile');">
-            </div>
-        </div>
-
-        <div style="margin-top: 40px;">
-            <h2 id="userDisplayName" style="margin:0;">User Account Profile</h2>
-            <button onclick="openMediaSelectorModal('user')" style="font-size:11px; padding:4px 10px; width:auto; background:#6c757d; margin-top:5px;">✏️ Edit Profile Media</button>
-        </div>
-
-        <!-- USER TABS NAVIGATION -->
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchUserTab('utab-details')">📝 Personal Info</button>
-            <button class="tab-btn" onclick="switchUserTab('utab-settings')">⚙️ Security & Mode</button>
-            <button class="tab-btn" onclick="switchUserTab('utab-report')">📩 Report/Feedback</button>
-        </div>
-
-        <!-- TAB 1: PERSONAL INFO -->
-        <div id="utab-details" class="tab-content active">
-            <div class="input-group">
-                <label>Contact No.:</label>
-                <input type="text" id="uContactNo" placeholder="09xxxxxxxxx">
-            </div>
-
-            <p style="font-weight:bold; font-size:12px; margin:8px 0 2px 0;">Address Details:</p>
-            <div class="input-group"><label>Country:</label><input type="text" id="uCountry" value="Philippines"></div>
-            <div class="input-group"><label>Province:</label><input type="text" id="uProvince" placeholder="Province"></div>
-            <div class="input-group"><label>City:</label><input type="text" id="uCity" placeholder="City"></div>
-            <div class="input-group"><label>Municipality:</label><input type="text" id="uMunicipality" placeholder="Municipality"></div>
-            <div class="input-group"><label>Barangay:</label><input type="text" id="uBarangay" placeholder="Barangay"></div>
-
-            <div class="input-group"><label>Birth Date:</label><input type="date" id="uBirthDate" onchange="calculateAge()"></div>
-            <div class="input-group"><label>Age:</label><input type="text" id="uAge" readonly placeholder="Auto-calculated"></div>
-            <div class="input-group">
-                <label>Sex:</label>
-                <select id="uSex">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            <button onclick="saveUserProfileDetails()" class="btn-green">Save Profile Info</button>
-        </div>
-
-        <!-- TAB 2: SECURITY & THEME MODE -->
-        <div id="utab-settings" class="tab-content">
-            <h3>Appearance Settings</h3>
-            <div class="input-group">
-                <label>Theme Mode:</label>
-                <select id="themeSelector" onchange="toggleThemeMode(this.value)">
-                    <option value="light">Light Mode ☀️</option>
-                    <option value="dark">Dark Mode 🌙</option>
-                </select>
-            </div>
-
-            <hr style="margin:15px 0; border:0; border-top:1px solid var(--border-color);">
-
-            <h3>Change Password via Gmail OTP</h3>
-            <button onclick="sendChangePasswordOTP()" class="btn-secondary">Send Reset Code to Gmail</button>
-
-            <div id="uChangePassBox" style="display:none; margin-top:10px;">
-                <div class="input-group"><label>Enter OTP Code:</label><input type="text" id="uOtpInput"></div>
-                <div class="input-group"><label>New Password:</label><input type="password" id="uNewPassInput"></div>
-                <button onclick="verifyAndChangePassword()" class="btn-green">Update Password</button>
-            </div>
-        </div>
-
-        <!-- TAB 3: REPORT / FEEDBACK -->
-        <div id="utab-report" class="tab-content">
-            <h3>Send Report or Feedback to Admin</h3>
-            <p>Describe your issue, suggestion, or complaint:</p>
-            <textarea id="uReportText" rows="4" placeholder="Write your message here..."></textarea>
-            <button onclick="submitUserReport()" class="btn-green">Submit Report</button>
-
-            <h4 style="margin-top:15px; font-size:12px;">Admin Responses to Your Reports:</h4>
-            <div id="uReportResponses" style="max-height:150px; overflow-y:auto;"></div>
-        </div>
-    </div>
-
-    <!-- 5. OTP CARD -->
+    <!-- 3. OTP VERIFICATION CARD -->
     <div id="otpCard" class="container">
         <h1>Verify Account</h1>
-        <p id="otpMessage">Code sent!</p>
+        <p id="otpMessage">Verification code sent!</p>
+
         <div class="input-group">
-            <input type="text" id="otpInput" placeholder="Enter 6-Digit Code">
+            <label>Enter 6-Digit Code:</label>
+            <input type="text" id="otpInput" placeholder="Enter code">
         </div>
-        <button onclick="verifyOTP()" class="btn-green">Verify & Complete Signup</button>
+
+        <button onclick="verifyOTP()" class="btn-green">Verify & Complete Sign Up</button>
+        <button id="resendBtn" onclick="resendOTP()" class="btn-secondary" disabled>Resend Code (60s)</button>
+        <p id="otpError" class="error-msg"></p>
     </div>
 
-    <!-- 6. ADMIN DASHBOARD PANEL -->
-    <div id="adminPanel" class="container" style="padding-top:0;">
-        <div class="cover-photo" id="adminCoverPhotoBox" onclick="viewFullImage('adminCover')" style="margin-top:15px;">
-            <div class="profile-img-container">
-                <img src="https://via.placeholder.com/80" id="adminProfileImgPic" class="profile-img" onclick="event.stopPropagation(); viewFullImage('adminProfile');">
-            </div>
+    <!-- 4. MAIN DASHBOARD -->
+    <div id="dashboard" class="container">
+        <h1>Screen Time Manager</h1>
+        <p>Set your restricted screen time window.</p>
+
+        <div class="clock-box">
+            <small>Current Time:</small>
+            <div id="currentTime" class="clock">00:00:00</div>
         </div>
 
-        <div style="margin-top: 40px;">
-            <h2>John Rey Pelaez Oliva</h2>
-            <small>Administrator (System Owner)</small>
-            <div style="margin-top:5px;">
-                <button onclick="openMediaSelectorModal('admin')" style="font-size:11px; padding:4px 10px; width:auto; background:#6c757d;">✏️ Edit Admin Media</button>
-            </div>
+        <div class="input-group">
+            <label for="startTime">Lock Start Time:</label>
+            <input type="time" id="startTime">
         </div>
 
-        <!-- ADMIN NAVIGATION TABS -->
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchAdminTab('atab-reports')">📩 Reports & Feedback</button>
-            <button class="tab-btn" onclick="switchAdminTab('atab-logs')">📊 Access Logs</button>
+        <div class="input-group">
+            <label for="endTime">Lock End Time (Unlock):</label>
+            <input type="time" id="endTime">
         </div>
 
-        <!-- TAB 1: REPORTS & FEEDBACK (ADMIN RESPONSE) -->
-        <div id="atab-reports" class="tab-content active">
-            <h3 style="font-size:13px; color:#007bff; margin:5px 0;">User Messages & Reports</h3>
-            <div id="adminReportsList" style="max-height:250px; overflow-y:auto;"></div>
-        </div>
+        <button onclick="saveSchedule()">Save Schedule</button>
+        <button onclick="clearSchedule()" class="btn-reset">Clear Schedule</button>
 
-        <!-- TAB 2: LOGS -->
-        <div id="atab-logs" class="tab-content">
-            <h3>System Logs</h3>
-            <table class="logs-table">
-                <thead><tr><th>User</th><th>Role</th><th>Time</th></tr></thead>
-                <tbody id="logsTableBody"></tbody>
-            </table>
-        </div>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+        <button onclick="logout()" class="btn-logout">Logout System</button>
+
+        <p id="status" class="success-msg"></p>
     </div>
-
-    <!-- MODAL FOR MEDIA SELECTION -->
-    <div id="typeSelectorModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3>Edit Media</h3>
-            <button onclick="selectMediaType('profile')" style="background:#007bff;">Select Profile Photo</button>
-            <button onclick="selectMediaType('cover')" style="background:#17a2b8;">Select Cover Photo</button>
-            <button onclick="closeModal('typeSelectorModal')" class="btn-reset" style="margin-top:8px;">Cancel</button>
-        </div>
-    </div>
-
-    <!-- MODAL FOR SOURCE SELECTION -->
-    <div id="sourceSelectorModal" class="modal-overlay">
-        <div class="modal-box">
-            <h3>Select Source</h3>
-            <button onclick="triggerFileInput('gallery')" style="background:#28a745;">Gallery</button>
-            <button onclick="triggerFileInput('camera')" style="background:#007bff;">Camera</button>
-            <button onclick="triggerFileInput('files')" style="background:#6c757d;">Files</button>
-            <button onclick="closeModal('sourceSelectorModal')" class="btn-reset" style="margin-top:8px;">Cancel</button>
-        </div>
-    </div>
-
-    <!-- FULL VIEW IMAGE MODAL -->
-    <div id="fullViewModal" class="fullview-overlay" onclick="closeFullView()">
-        <span class="fullview-close-btn">&times;</span>
-        <img id="fullViewImage" class="fullview-img" src="" alt="Full View">
-    </div>
-
-    <!-- HIDDEN INPUTS -->
-    <input type="file" id="inputGallery" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
-    <input type="file" id="inputCamera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(event)">
-    <input type="file" id="inputFiles" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
 
     <script>
-        const EMAILJS_PUBLIC_KEY = "2PV1h2_hDzWgqxmT4"; 
-        const EMAILJS_SERVICE_ID = "service_jrpo2006"; 
-        const EMAILJS_TEMPLATE_ID = "template_g6rial5"; 
+        // =========================================================
+        // IPA-PASTE MO DITO ANG NATANGGAP MONG 3 EMAILJS KEYS:
+        // =========================================================
+        const EMAILJS_PUBLIC_KEY = "I-PASTE_ANG_PUBLIC_KEY_DITO"; 
+        const EMAILJS_SERVICE_ID = "I-PASTE_ANG_SERVICE_ID_DITO"; 
+        const EMAILJS_TEMPLATE_ID = "I-PASTE_ANG_TEMPLATE_ID_DITO"; 
+        // =========================================================
 
-        (function(){ if(EMAILJS_PUBLIC_KEY) emailjs.init(EMAILJS_PUBLIC_KEY); })();
+        (function() {
+            if (EMAILJS_PUBLIC_KEY !== "I-PASTE_ANG_PUBLIC_KEY_DITO") {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+            }
+        })();
 
         let generatedOTP = null;
         let tempUserCredentials = {};
-        let activeTargetScope = 'user'; 
-        let currentEditingMedia = 'profile'; 
-        let screenLockTimer = null;
-
-        const ADMIN_GMAIL = "johnreypelaezoliva@gmail.com";
-        const ADMIN_PASS = "@adminjohnrey202006";
+        let timerInterval = null;
 
         window.onload = function() {
-            const savedTheme = localStorage.getItem('systemTheme') || 'light';
-            toggleThemeMode(savedTheme);
-            document.getElementById('themeSelector').value = savedTheme;
-
-            renderMenu();
-
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const userRole = localStorage.getItem('currentRole');
 
             if (isLoggedIn) {
-                if (userRole === 'Admin') showAdminPanel();
-                else openScreenTimeCard();
+                showDashboard();
             } else {
-                showLoginCard();
+                const existingUser = localStorage.getItem('userContact');
+                if (existingUser) {
+                    showLoginCard();
+                } else {
+                    showRegisterCard();
+                }
             }
 
-            loadMediaDisplays();
-            loadUserProfileData();
-            loadAdminReports();
-            startPowerScheduleCheck();
+            updateClock();
         };
 
-        function renderMenu() {
-            const menu = document.getElementById('dropdownMenu');
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const role = localStorage.getItem('currentRole');
-
-            if (!isLoggedIn) {
-                menu.innerHTML = `
-                    <button onclick="showLoginCard()">👤 Login</button>
-                    <button onclick="showRegisterCard()">📝 Create New Account</button>
-                `;
-            } else if (role === 'Admin') {
-                menu.innerHTML = `
-                    <button onclick="showAdminPanel()">🛡️ Admin Dashboard</button>
-                    <button onclick="logout()">🚪 Logout</button>
-                `;
-            } else {
-                menu.innerHTML = `
-                    <button onclick="openScreenTimeCard()">⏱️ Screen Time Control</button>
-                    <button onclick="logout()">🚪 Logout</button>
-                `;
-            }
-        }
-
-        function toggleThemeMode(mode) {
-            document.documentElement.setAttribute('data-theme', mode);
-            localStorage.setItem('systemTheme', mode);
-        }
-
-        function toggleDropdown() {
-            const menu = document.getElementById('dropdownMenu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-        }
-
-        function hideAllCards() {
-            document.getElementById('registerCard').style.display = 'none';
+        function showRegisterCard() {
+            document.getElementById('registerCard').style.display = 'block';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('otpCard').style.display = 'none';
-            document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('userProfileCard').style.display = 'none';
-            document.getElementById('screenTimeCard').style.display = 'none';
-            document.getElementById('dropdownMenu').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'none';
         }
 
-        function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
-        function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
-        
-        function openScreenTimeCard() { 
-            hideAllCards(); 
-            document.getElementById('screenTimeCard').style.display = 'block'; 
-            loadUserProfileData();
+        function showLoginCard() {
+            document.getElementById('registerCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'block';
+            document.getElementById('otpCard').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'none';
         }
 
-        function openUserProfile() {
-            hideAllCards();
-            document.getElementById('userProfileCard').style.display = 'block';
-            loadUserProfileData();
-            loadUserReportResponses();
+        function showOTPCard(contact) {
+            document.getElementById('registerCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('otpCard').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('otpMessage').innerText = `Verification code sent to ${contact}`;
+            
+            startResendTimer();
         }
 
-        function showAdminPanel() {
-            hideAllCards();
-            document.getElementById('adminPanel').style.display = 'block';
-            loadAdminReports();
-        }
-
-        function switchUserTab(tabId) {
-            document.querySelectorAll('#userProfileCard .tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#userProfileCard .tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        function switchAdminTab(tabId) {
-            document.querySelectorAll('#adminPanel .tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#adminPanel .tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        /* AUTOMATED SCREEN TIME & POWER SCHEDULE CONTROLS */
-        function savePowerSchedule() {
-            const offTime = document.getElementById('powerOffTime').value;
-            const onTime = document.getElementById('powerOnTime').value;
-
-            localStorage.setItem('schedPowerOff', offTime);
-            localStorage.setItem('schedPowerOn', onTime);
-            alert("Power Schedule Saved!");
-        }
-
-        function startPowerScheduleCheck() {
-            setInterval(() => {
-                const now = new Date();
-                const currentTime = now.toTimeString().substring(0, 5);
-
-                const offTime = localStorage.getItem('schedPowerOff');
-                const onTime = localStorage.getItem('schedPowerOn');
-
-                if (offTime && currentTime === offTime) {
-                    lockScreenNow();
-                }
-                if (onTime && currentTime === onTime) {
-                    unlockScreenSystem();
-                }
-            }, 10000);
-        }
-
-        function startScreenTimer() {
-            const mins = parseInt(document.getElementById('screenTimeoutMin').value);
-            if (!mins || mins <= 0) { alert("Enter valid minutes!"); return; }
-
-            if (screenLockTimer) clearTimeout(screenLockTimer);
-            document.getElementById('timerStatus').innerText = `Screen will lock in ${mins} minute(s).`;
-
-            screenLockTimer = setTimeout(() => {
-                lockScreenNow();
-            }, mins * 60 * 1000);
-        }
-
-        function lockScreenNow() {
-            document.getElementById('lockScreenOverlay').style.display = 'flex';
-        }
-
-        function unlockScreenSystem() {
-            document.getElementById('lockScreenOverlay').style.display = 'none';
-            document.getElementById('timerStatus').innerText = "System Unlocked.";
-        }
-
-        /* MEDIA HANDLING */
-        function openMediaSelectorModal(scope) {
-            activeTargetScope = scope;
-            document.getElementById('typeSelectorModal').style.display = 'flex';
-        }
-
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        function selectMediaType(type) {
-            currentEditingMedia = type;
-            closeModal('typeSelectorModal');
-            document.getElementById('sourceSelectorModal').style.display = 'flex';
-        }
-
-        function triggerFileInput(source) {
-            closeModal('sourceSelectorModal');
-            if (source === 'gallery') document.getElementById('inputGallery').click();
-            if (source === 'camera') document.getElementById('inputCamera').click();
-            if (source === 'files') document.getElementById('inputFiles').click();
-        }
-
-        function compressAndSaveImage(file, callback) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function (e) {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = function () {
-                    const canvas = document.createElement('canvas');
-                    const MAX = 800;
-                    let w = img.width, h = img.height;
-                    if (w > h ? w > MAX : h > MAX) {
-                        if (w > h) { h *= MAX / w; w = MAX; } else { w *= MAX / h; h = MAX; }
-                    }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    callback(canvas.toDataURL('image/jpeg', 0.7));
-                };
-            };
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (file) {
-                compressAndSaveImage(file, function(dataUrl) {
-                    const prefix = activeTargetScope === 'admin' ? 'admin' : 'user';
-                    const key = prefix + (currentEditingMedia === 'profile' ? 'Profile' : 'Cover');
-                    localStorage.setItem(key, dataUrl);
-                    loadMediaDisplays();
-                    alert("Photo updated successfully!");
-                });
-            }
-        }
-
-        function loadMediaDisplays() {
-            const userPic = localStorage.getItem('userProfile') || 'https://via.placeholder.com/80';
-            document.getElementById('userProfilePic').src = userPic;
-            document.getElementById('dashHeaderPic').src = userPic;
-
-            if(localStorage.getItem('userCover')) document.getElementById('userCoverBox').style.backgroundImage = `url('${localStorage.getItem('userCover')}')`;
-            if(localStorage.getItem('adminProfile')) document.getElementById('adminProfileImgPic').src = localStorage.getItem('adminProfile');
-            if(localStorage.getItem('adminCover')) document.getElementById('adminCoverPhotoBox').style.backgroundImage = `url('${localStorage.getItem('adminCover')}')`;
-        }
-
-        function viewFullImage(type) {
-            const modal = document.getElementById('fullViewModal');
-            const img = document.getElementById('fullViewImage');
-            let src = '';
-
-            if (type === 'userProfile') src = localStorage.getItem('userProfile') || document.getElementById('userProfilePic').src;
-            if (type === 'userCover') src = localStorage.getItem('userCover');
-            if (type === 'adminProfile') src = localStorage.getItem('adminProfile') || document.getElementById('adminProfileImgPic').src;
-            if (type === 'adminCover') src = localStorage.getItem('adminCover');
-
-            if (src) {
-                img.src = src;
-                modal.style.display = 'flex';
-            } else {
-                alert("No photo uploaded yet.");
-            }
-        }
-
-        function closeFullView() { document.getElementById('fullViewModal').style.display = 'none'; }
-
-        /* USER PROFILE DATA */
-        function calculateAge() {
-            const dob = document.getElementById('uBirthDate').value;
-            if (dob) {
-                const diff = Date.now() - new Date(dob).getTime();
-                const ageDate = new Date(diff);
-                document.getElementById('uAge').value = Math.abs(ageDate.getUTCFullYear() - 1970);
-            }
-        }
-
-        function saveUserProfileDetails() {
-            const data = {
-                contactNo: document.getElementById('uContactNo').value,
-                country: document.getElementById('uCountry').value,
-                province: document.getElementById('uProvince').value,
-                city: document.getElementById('uCity').value,
-                municipality: document.getElementById('uMunicipality').value,
-                barangay: document.getElementById('uBarangay').value,
-                birthDate: document.getElementById('uBirthDate').value,
-                age: document.getElementById('uAge').value,
-                sex: document.getElementById('uSex').value
-            };
-            localStorage.setItem('userProfileData', JSON.stringify(data));
-            alert("Profile details saved successfully!");
-        }
-
-        function loadUserProfileData() {
-            const saved = localStorage.getItem('userProfileData');
-            if (saved) {
-                const d = JSON.parse(saved);
-                document.getElementById('uContactNo').value = d.contactNo || '';
-                document.getElementById('uCountry').value = d.country || 'Philippines';
-                document.getElementById('uProvince').value = d.province || '';
-                document.getElementById('uCity').value = d.city || '';
-                document.getElementById('uMunicipality').value = d.municipality || '';
-                document.getElementById('uBarangay').value = d.barangay || '';
-                document.getElementById('uBirthDate').value = d.birthDate || '';
-                document.getElementById('uAge').value = d.age || '';
-                document.getElementById('uSex').value = d.sex || 'Male';
-            }
-            const gmail = localStorage.getItem('userContact');
-            if (gmail) {
-                document.getElementById('userDisplayName').innerText = gmail;
-                document.getElementById('dashHeaderEmail').innerText = gmail;
-            }
-        }
-
-        /* REPORT / FEEDBACK SYSTEM */
-        function submitUserReport() {
-            const msg = document.getElementById('uReportText').value.trim();
-            const userGmail = localStorage.getItem('userContact') || 'Anonymous User';
-
-            if (!msg) { alert("Please type a message!"); return; }
-
-            let reports = JSON.parse(localStorage.getItem('systemReports') || '[]');
-            reports.push({
-                id: Date.now(),
-                user: userGmail,
-                message: msg,
-                date: new Date().toLocaleString(),
-                reply: ''
-            });
-
-            localStorage.setItem('systemReports', JSON.stringify(reports));
-            document.getElementById('uReportText').value = '';
-            alert("Report/Feedback submitted to Admin!");
-            loadUserReportResponses();
-        }
-
-        function loadUserReportResponses() {
-            const container = document.getElementById('uReportResponses');
-            const currentUser = localStorage.getItem('userContact');
-            let reports = JSON.parse(localStorage.getItem('systemReports') || '[]');
-
-            const myReports = reports.filter(r => r.user === currentUser);
-            container.innerHTML = myReports.length === 0 ? '<p style="font-size:11px;">No reports submitted yet.</p>' : '';
-
-            myReports.forEach(r => {
-                container.innerHTML += `
-                    <div class="report-box">
-                        <strong>Your Report (${r.date}):</strong><br>${r.message}<br>
-                        <hr style="margin:5px 0;">
-                        <span style="color:#007bff;"><strong>Admin Reply:</strong> ${r.reply ? r.reply : '<i>Pending response...</i>'}</span>
-                    </div>
-                `;
-            });
-        }
-
-        function loadAdminReports() {
-            const container = document.getElementById('adminReportsList');
-            if (!container) return;
-
-            let reports = JSON.parse(localStorage.getItem('systemReports') || '[]');
-            container.innerHTML = reports.length === 0 ? '<p style="font-size:12px;">No user reports received.</p>' : '';
-
-            reports.forEach(r => {
-                container.innerHTML += `
-                    <div class="report-box">
-                        <strong>From:</strong> ${r.user} (${r.date})<br>
-                        <strong>Message:</strong> ${r.message}<br>
-                        <div style="margin-top:6px;">
-                            <input type="text" id="replyInput_${r.id}" placeholder="Type reply..." value="${r.reply}">
-                            <button onclick="sendAdminReply(${r.id})" class="btn-green btn-sm" style="margin-top:4px;">Send Response</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function sendAdminReply(reportId) {
-            const replyText = document.getElementById(`replyInput_${reportId}`).value.trim();
-            let reports = JSON.parse(localStorage.getItem('systemReports') || '[]');
-
-            const idx = reports.findIndex(r => r.id === reportId);
-            if (idx >= 0) {
-                reports[idx].reply = replyText;
-                localStorage.setItem('systemReports', JSON.stringify(reports));
-                alert("Reply sent to user!");
-                loadAdminReports();
-            }
-        }
-
-        /* OTP CHANGE PASSWORD VIA GMAIL */
-        async function sendChangePasswordOTP() {
-            const gmail = localStorage.getItem('userContact');
-            if (!gmail) { alert("Gmail not found. Login again."); return; }
-
+        async function sendVerificationCode(contact) {
             generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            alert(`Sending OTP to ${gmail}...`);
 
             try {
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { to_email: gmail, otp_code: generatedOTP });
-                document.getElementById('uChangePassBox').style.display = 'block';
-                alert("Verification code sent to your Gmail!");
-            } catch(e) {
-                alert("Failed to send OTP code.");
+                const templateParams = {
+                    to_email: contact,
+                    otp_code: generatedOTP
+                };
+
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+                return true;
+            } catch (error) {
+                console.error("EmailJS Error:", error);
+                alert("Failed to send email. Check your EmailJS keys or internet connection.");
+                return false;
             }
         }
 
-        function verifyAndChangePassword() {
-            const otp = document.getElementById('uOtpInput').value.trim();
-            const newPass = document.getElementById('uNewPassInput').value;
-
-            if (otp === generatedOTP && newPass !== "") {
-                localStorage.setItem('userPassword', newPass);
-                alert("Password updated successfully!");
-                document.getElementById('uChangePassBox').style.display = 'none';
-            } else {
-                alert("Invalid OTP Code or empty password!");
-            }
-        }
-
-        /* REGISTER & LOGIN PROCESSORS */
         async function processRegister() {
             const contact = document.getElementById('regContact').value.trim();
             const pass = document.getElementById('regPass').value;
             const confirmPass = document.getElementById('regConfirmPass').value;
+            const errorElement = document.getElementById('regError');
+            const regBtn = document.getElementById('regBtn');
 
-            if (!contact || !pass || pass !== confirmPass) {
-                document.getElementById('regError').innerText = "Validation failed. Check inputs.";
+            if (!contact || !pass || !confirmPass) {
+                errorElement.innerText = 'Please fill out all fields!';
                 return;
             }
 
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            tempUserCredentials = { contact, pass };
+            if (!contact.includes('@')) {
+                errorElement.innerText = 'Please enter a valid Gmail address!';
+                return;
+            }
 
-            try {
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { to_email: contact, otp_code: generatedOTP });
-                hideAllCards();
-                document.getElementById('otpCard').style.display = 'block';
-            } catch(e) {
-                document.getElementById('regError').innerText = "Failed to send email OTP.";
+            if (pass !== confirmPass) {
+                errorElement.innerText = 'Passwords do not match!';
+                return;
+            }
+
+            regBtn.disabled = true;
+            regBtn.innerText = 'Sending Code...';
+
+            tempUserCredentials = { contact, pass };
+            const sentSuccess = await sendVerificationCode(contact);
+
+            regBtn.disabled = false;
+            regBtn.innerText = 'Register & Send Code';
+
+            if (sentSuccess) {
+                errorElement.innerText = '';
+                showOTPCard(contact);
+            } else {
+                errorElement.innerText = 'Failed to send code. Please try again.';
+            }
+        }
+
+        function startResendTimer() {
+            let timeLeft = 60;
+            const resendBtn = document.getElementById('resendBtn');
+            resendBtn.disabled = true;
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    resendBtn.innerText = 'Resend Code';
+                    resendBtn.disabled = false;
+                } else {
+                    resendBtn.innerText = `Resend Code (${timeLeft}s)`;
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        async function resendOTP() {
+            if (tempUserCredentials.contact) {
+                const resendBtn = document.getElementById('resendBtn');
+                resendBtn.disabled = true;
+                resendBtn.innerText = 'Sending...';
+
+                const sentSuccess = await sendVerificationCode(tempUserCredentials.contact);
+                if (sentSuccess) {
+                    document.getElementById('otpError').innerText = '';
+                    startResendTimer();
+                } else {
+                    resendBtn.disabled = false;
+                    resendBtn.innerText = 'Resend Code';
+                }
             }
         }
 
         function verifyOTP() {
-            if (document.getElementById('otpInput').value.trim() === generatedOTP) {
+            const inputOTP = document.getElementById('otpInput').value.trim();
+            const otpError = document.getElementById('otpError');
+
+            if (inputOTP === generatedOTP) {
                 localStorage.setItem('userContact', tempUserCredentials.contact);
                 localStorage.setItem('userPassword', tempUserCredentials.pass);
                 localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('currentRole', 'User');
-                renderMenu();
-                openScreenTimeCard();
+
+                otpError.innerText = '';
+                clearInterval(timerInterval);
+                showDashboard();
             } else {
-                alert("Invalid OTP!");
+                otpError.innerText = 'Incorrect verification code. Try again!';
             }
         }
 
         function processLogin() {
-            const role = document.getElementById('loginRole').value;
             const contact = document.getElementById('loginContact').value.trim();
             const pass = document.getElementById('loginPass').value;
+            const loginError = document.getElementById('loginError');
 
-            if (role === 'Admin') {
-                if (contact === ADMIN_GMAIL && pass === ADMIN_PASS) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', 'Admin');
-                    renderMenu();
-                    showAdminPanel();
-                } else alert("Invalid Admin credentials!");
+            const savedContact = localStorage.getItem('userContact');
+            const savedPass = localStorage.getItem('userPassword');
+
+            if (contact === savedContact && pass === savedPass) {
+                localStorage.setItem('isLoggedIn', 'true');
+                loginError.innerText = '';
+                showDashboard();
             } else {
-                if (contact === localStorage.getItem('userContact') && pass === localStorage.getItem('userPassword')) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', 'User');
-                    renderMenu();
-                    openScreenTimeCard();
-                } else alert("Invalid User credentials!");
+                loginError.innerText = 'Invalid credentials or account does not exist.';
             }
         }
 
         function logout() {
             localStorage.setItem('isLoggedIn', 'false');
-            localStorage.removeItem('currentRole');
-            renderMenu();
             showLoginCard();
         }
+
+        function showDashboard() {
+            document.getElementById('registerCard').style.display = 'none';
+            document.getElementById('loginCard').style.display = 'none';
+            document.getElementById('otpCard').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+
+            const savedStart = localStorage.getItem('startTime');
+            const savedEnd = localStorage.getItem('endTime');
+
+            if (savedStart && savedEnd) {
+                document.getElementById('startTime').value = savedStart;
+                document.getElementById('endTime').value = savedEnd;
+                document.getElementById('status').innerText = `Restricted schedule: ${savedStart} - ${savedEnd}`;
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('currentTime').innerText = now.toLocaleTimeString();
+
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const startScheduleTime = localStorage.getItem('startTime');
+            const endScheduleTime = localStorage.getItem('endTime');
+
+            if (isLoggedIn && startScheduleTime && endScheduleTime) {
+                const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+                const [startHours, startMins] = startScheduleTime.split(':').map(Number);
+                const startMinutes = startHours * 60 + startMins;
+
+                const [endHours, endMins] = endScheduleTime.split(':').map(Number);
+                const endMinutes = endHours * 60 + endMins;
+
+                let isLocked = false;
+
+                if (startMinutes < endMinutes) {
+                    if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+                        isLocked = true;
+                    }
+                } else {
+                    if (currentMinutes >= startMinutes || currentMinutes < endMinutes) {
+                        isLocked = true;
+                    }
+                }
+
+                if (isLocked) {
+                    document.getElementById('lockScreen').style.display = 'flex';
+                } else {
+                    document.getElementById('lockScreen').style.display = 'none';
+                }
+            } else {
+                document.getElementById('lockScreen').style.display = 'none';
+            }
+        }
+
+        setInterval(updateClock, 1000);
+
+        function saveSchedule() {
+            const start = document.getElementById('startTime').value;
+            const end = document.getElementById('endTime').value;
+            
+            if (!start || !end) {
+                alert('Please select both lock start and lock end times!');
+                return;
+            }
+
+            localStorage.setItem('startTime', start);
+            localStorage.setItem('endTime', end);
+
+            document.getElementById('status').innerText = `Restricted window active: ${start} to ${end}`;
+            updateClock();
+        }
+
+        function clearSchedule() {
+            localStorage.removeItem('startTime');
+            localStorage.removeItem('endTime');
+            if (document.getElementById('startTime')) document.getElementById('startTime').value = '';
+            if (document.getElementById('endTime')) document.getElementById('endTime').value = '';
+            if (document.getElementById('status')) document.getElementById('status').innerText = 'Schedule cleared.';
+            updateClock();
+        }
     </script>
+
 </body>
 </html>
