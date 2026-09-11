@@ -7,7 +7,7 @@
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
-    <!-- FIREBASE SDKs & REAL-TIME LOGIC INTEGRATION -->
+    <!-- FIREBASE SDKs INTEGRATION (For Backend Database & Auth Only) -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
       import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -189,7 +189,7 @@
         .btn-reset { background-color: #dc3545; }
         .btn-logout { background-color: #6c757d; }
 
-        #dashboard, #loginCard, #adminPanel { display: none; }
+        #dashboard, #loginCard, #adminPanel, #otpStep { display: none; }
         .error-msg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; }
         .success-msg { color: #28a745; font-size: 12px; margin-top: 8px; font-weight: bold; }
 
@@ -289,28 +289,44 @@
         <p>Stop using your phone for a while and do something important not to overuse your phones</p>
     </div>
 
-    <!-- 1. REGISTRATION CARD -->
+    <!-- 1. REGISTRATION CARD WITH OTP -->
     <div id="registerCard" class="container">
         <h1>Create Account</h1>
-        <p>Sign up using Gmail</p>
+        <p>Sign up using Gmail with Verification</p>
 
-        <div class="input-group">
-            <label>Gmail Address:</label>
-            <input type="text" id="regContact" placeholder="e.g. user@gmail.com">
+        <!-- STEP 1: Details & OTP Request -->
+        <div id="detailsStep">
+            <div class="input-group">
+                <label>Gmail Address:</label>
+                <input type="text" id="regContact" placeholder="e.g. user@gmail.com">
+            </div>
+
+            <div class="input-group">
+                <label>Password:</label>
+                <input type="password" id="regPass" placeholder="Create password">
+            </div>
+
+            <div class="input-group">
+                <label>Confirm Password:</label>
+                <input type="password" id="regConfirmPass" placeholder="Re-enter password">
+            </div>
+
+            <button id="sendOtpBtn" onclick="sendOTP()" class="btn-green">Send OTP Code</button>
         </div>
 
-        <div class="input-group">
-            <label>Password:</label>
-            <input type="password" id="regPass" placeholder="Create password">
+        <!-- STEP 2: Enter OTP Code -->
+        <div id="otpStep">
+            <div class="input-group">
+                <label>Enter 6-Digit OTP Sent to Email:</label>
+                <input type="number" id="otpInput" placeholder="Enter OTP">
+            </div>
+
+            <button id="verifyBtn" onclick="verifyOTPAndRegister()" class="btn-green">Verify & Complete Registration</button>
+            <button onclick="backToDetails()" class="btn-logout" style="margin-top: 5px;">Back</button>
         </div>
 
-        <div class="input-group">
-            <label>Confirm Password:</label>
-            <input type="password" id="regConfirmPass" placeholder="Re-enter password">
-        </div>
-
-        <button id="regBtn" onclick="processRegister()" class="btn-green">Register Account</button>
         <p id="regError" class="error-msg"></p>
+        <p id="regSuccess" class="success-msg"></p>
         
         <p style="font-size: 12px; margin-top: 15px;">
             Already have an account? <a href="#" onclick="showLoginCard()" style="color: #007bff; font-weight: bold;">Login here</a>
@@ -415,6 +431,13 @@
     </div>
 
     <script>
+        // EMAILJS INIT FOR OTP
+        (function() {
+            emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Palitan ng Public Key mo sa EmailJS kung mayroon ka
+        })();
+
+        let generatedOTP = null;
+
         window.onload = function() {
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             const userRole = localStorage.getItem('currentRole');
@@ -446,7 +469,11 @@
             document.getElementById('dropdownMenu').style.display = 'none';
         }
 
-        function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
+        function showRegisterCard() { 
+            hideAllCards(); 
+            document.getElementById('registerCard').style.display = 'block'; 
+            backToDetails();
+        }
         function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
         function showDashboard() { hideAllCards(); document.getElementById('dashboard').style.display = 'block'; }
         function showAdminPanel() { hideAllCards(); document.getElementById('adminPanel').style.display = 'block'; }
@@ -479,11 +506,16 @@
             }
         }
 
-        async function processRegister() {
+        // OTP LOGIC
+        function sendOTP() {
             const email = document.getElementById('regContact').value;
             const pass = document.getElementById('regPass').value;
             const confirmPass = document.getElementById('regConfirmPass').value;
             const errorMsg = document.getElementById('regError');
+            const successMsg = document.getElementById('regSuccess');
+
+            errorMsg.innerText = "";
+            successMsg.innerText = "";
 
             if (!email || !pass) {
                 errorMsg.innerText = "Please fill in all fields.";
@@ -494,10 +526,50 @@
                 return;
             }
 
+            // Generate 6-digit OTP
+            generatedOTP = Math.floor(100000 + Math.random() * 900000);
+
+            // Send via EmailJS (O fallback alert kung wala pang keys)
+            emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+                to_email: email,
+                otp_code: generatedOTP
+            }).then(() => {
+                successMsg.innerText = "OTP Code sent to your Gmail!";
+                document.getElementById('detailsStep').style.display = 'none';
+                document.getElementById('otpStep').style.display = 'block';
+            }).catch((err) => {
+                // Fallback simulation kung hindi pa nakasetup ang EmailJS keys
+                alert(`OTP Code for ${email}: ${generatedOTP}`);
+                successMsg.innerText = "OTP Code generated! (Check alert/email)";
+                document.getElementById('detailsStep').style.display = 'none';
+                document.getElementById('otpStep').style.display = 'block';
+            });
+        }
+
+        function backToDetails() {
+            document.getElementById('detailsStep').style.display = 'block';
+            document.getElementById('otpStep').style.display = 'none';
+            document.getElementById('regError').innerText = "";
+            document.getElementById('regSuccess').innerText = "";
+        }
+
+        async function verifyOTPAndRegister() {
+            const userOTP = document.getElementById('otpInput').value;
+            const email = document.getElementById('regContact').value;
+            const pass = document.getElementById('regPass').value;
+            const errorMsg = document.getElementById('regError');
+
+            if (userOTP != generatedOTP) {
+                errorMsg.innerText = "Invalid OTP Code. Please try again.";
+                return;
+            }
+
             try {
+                // Create sa Firebase Auth
                 await window.createUserWithEmailAndPassword(window.fbAuth, email, pass);
-                await logActivityToFirebase(email, "User", "Sign Up");
-                alert("Account created successfully!");
+                await logActivityToFirebase(email, "User", "Sign Up (OTP Verified)");
+                
+                alert("Account created and verified successfully!");
                 showLoginCard();
             } catch (error) {
                 errorMsg.innerText = error.message;
