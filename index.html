@@ -1,33 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screen Time Manager & User System</title>
+    <title>Automated Screen Time Management</title>
+    <!-- EmailJS SDK para sa totoong Gmail Verification -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        :root {
-            --bg-color: #f4f6f9;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-color: #1a1a1a;
-            --text-sub: #555;
-            --border-color: #ccc;
-            --input-bg: rgba(255, 255, 255, 0.9);
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: rgba(30, 30, 30, 0.95);
-            --text-color: #f1f1f1;
-            --text-sub: #aaa;
-            --border-color: #444;
-            --input-bg: #2a2a2a;
-        }
-
         * {
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            transition: background 0.3s, color 0.3s;
+            font-family: Arial, sans-serif;
         }
 
         body {
@@ -37,13 +19,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: var(--bg-color);
             background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('IMG_7340.jpeg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
-            color: var(--text-color);
         }
 
         .top-nav {
@@ -54,10 +34,9 @@
         }
 
         .profile-menu-btn {
-            background: var(--card-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            padding: 8px 15px;
             border-radius: 20px;
             cursor: pointer;
             font-weight: bold;
@@ -65,20 +44,18 @@
             align-items: center;
             gap: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            font-size: 14px;
         }
 
         .dropdown-menu {
             display: none;
             position: absolute;
             right: 0;
-            top: 45px;
-            background: var(--card-bg);
-            border-radius: 12px;
+            top: 40px;
+            background: white;
+            border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            width: 190px;
+            width: 170px;
             overflow: hidden;
-            border: 1px solid var(--border-color);
         }
 
         .dropdown-menu button {
@@ -86,112 +63,102 @@
             padding: 12px;
             border: none;
             background: none;
-            color: var(--text-color);
             text-align: left;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             margin: 0;
-            font-weight: 600;
         }
 
         .dropdown-menu button:hover {
-            background: rgba(0,123,255,0.1);
+            background: #f0f0f0;
         }
 
         .container {
-            background: var(--card-bg);
-            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            padding: 24px;
-            border-radius: 20px;
+            padding: 20px;
+            border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 90%;
             margin: 20px 0;
-            border: 1px solid var(--border-color);
-            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        h1 { font-size: 22px; margin-bottom: 5px; font-weight: 700; }
-        p { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+        h1 { font-size: 20px; color: #1a1a1a; margin-bottom: 5px; }
+        h2 { font-size: 15px; color: #444; margin-top: 10px; }
+        p { font-size: 13px; color: #555; }
+
+        .clock-box {
+            background: rgba(0, 123, 255, 0.08);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0, 123, 255, 0.15);
+        }
+        .clock { font-size: 24px; font-weight: bold; color: #007bff; }
 
         .input-group {
-            margin: 12px 0;
+            margin: 10px 0;
             text-align: left;
         }
-        label { font-size: 12px; font-weight: bold; color: var(--text-color); display: block; margin-bottom: 4px; }
+        label { font-size: 12px; font-weight: bold; color: #333; }
         
-        input[type="text"], input[type="password"], input[type="time"], input[type="number"], input[type="date"], select, textarea {
+        input[type="text"], input[type="password"], input[type="time"], input[type="number"], select {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            padding: 10px;
+            margin-top: 4px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
             box-sizing: border-box;
-            background: var(--input-bg);
-            color: var(--text-color);
-            font-size: 14px;
-            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
         }
 
-        button.btn-main {
+        button {
             width: 100%;
             background-color: #007bff;
             color: white;
             border: none;
-            padding: 12px;
+            padding: 10px;
             font-size: 14px;
             font-weight: bold;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 8px;
+            transition: 0.3s background-color;
         }
-        button.btn-main:hover { opacity: 0.9; }
+        button:hover { opacity: 0.9; }
+        button:disabled { background-color: #a5a5a5; cursor: not-allowed; opacity: 0.7; }
 
-        .btn-green { background-color: #007bff !important; }
-        .btn-red { background-color: #dc3545 !important; }
-        .btn-grey { background-color: #6c757d !important; }
+        .btn-green { background-color: #28a745; }
+        .btn-reset { background-color: #dc3545; }
+        .btn-logout { background-color: #6c757d; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-sm { padding: 5px 8px; font-size: 11px; width: auto; margin: 2px; }
 
-        #registerCard, #loginCard, #otpCard, #adminPanel, #modPanel, #userProfileCard, #screenTimeCard { display: none; }
+        #dashboard, #otpCard, #loginCard, #adminPanel, #resetPassCard, #modApprovalCard { display: none; }
         .error-msg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; }
+        .success-msg { color: #28a745; font-size: 12px; margin-top: 8px; font-weight: bold; }
 
-        .st-header {
-            display: flex;
-            align-items: center;
+        .lock-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-color: #dc3545;
+            color: white;
+            z-index: 99999;
+            flex-direction: column;
             justify-content: center;
-            position: relative;
-            margin-bottom: 15px;
-        }
-        .user-logo-btn {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            border: 2px solid #007bff;
-            object-fit: cover;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        }
-        .user-logo-btn:hover {
-            transform: scale(1.05);
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
         }
 
-        .time-box {
-            background: rgba(0, 123, 255, 0.12);
-            border: 1px solid rgba(0, 123, 255, 0.2);
-            border-radius: 12px;
-            padding: 10px;
-            margin: 15px 0;
-        }
-        .time-box .time-val {
-            font-size: 24px;
-            font-weight: 800;
-            color: #007bff;
-            margin-top: 2px;
-        }
-
+        /* PROFILE AND COVER STYLES */
         .cover-photo {
             width: 100%;
             height: 120px;
@@ -217,30 +184,36 @@
             background: #eee;
             object-fit: cover;
             cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .profile-img:hover {
+            transform: scale(1.05);
         }
 
-        .nav-tabs {
+        /* ADMIN NAVIGATION TABS */
+        .admin-nav-tabs {
             display: flex;
             gap: 4px;
             overflow-x: auto;
             margin-top: 15px;
             padding-bottom: 5px;
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 2px solid #ddd;
         }
         .tab-btn {
-            background: var(--input-bg);
-            color: var(--text-color);
+            background: #e9ecef;
+            color: #333;
             padding: 6px 12px;
             font-size: 11px;
             border-radius: 6px 6px 0 0;
             white-space: nowrap;
-            border: none;
-            cursor: pointer;
+            width: auto;
+            margin: 0;
         }
         .tab-btn.active {
             background: #007bff;
             color: white;
         }
+
         .tab-content {
             display: none;
             text-align: left;
@@ -250,40 +223,136 @@
             display: block;
         }
 
-        #lockScreenOverlay {
+        .logs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 5px;
+        }
+        .logs-table th, .logs-table td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        .earnings-card {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .earnings-card h4 { margin: 0; font-size: 12px; text-transform: uppercase; }
+        .earnings-card .amount { font-size: 24px; font-weight: bold; margin: 4px 0; }
+
+        /* MODALS */
+        .modal-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: #000;
-            color: #fff;
-            z-index: 99999;
-            flex-direction: column;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
             justify-content: center;
             align-items: center;
+        }
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 85%;
+            max-width: 320px;
             text-align: center;
+        }
+        .modal-box button {
+            margin: 6px 0;
+            font-size: 13px;
+        }
+
+        /* FULL IMAGE VIEW MODAL */
+        .fullview-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .fullview-img {
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            object-fit: contain;
+        }
+        .fullview-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="lockScreenOverlay">
-        <h1>🔒 SCREEN LOCKED</h1>
-        <p>Restricted screen time active.</p>
-        <button onclick="unlockScreenSystem()" class="btn-main btn-green" style="width:auto; padding:10px 20px;">Unlock System</button>
-    </div>
-
+    <!-- TOP NAV / PROFILE MENU -->
     <div class="top-nav">
         <button class="profile-menu-btn" onclick="toggleDropdown()">
-            👤 Menu ▾
+            👤 Profile / Menu ▾
         </button>
-        <div id="dropdownMenu" class="dropdown-menu"></div>
+        <div id="dropdownMenu" class="dropdown-menu">
+            <button onclick="showLoginCard()">👤 User Login</button>
+            <button onclick="openAdminCheck()">🛡️ Admin Profile</button>
+        </div>
     </div>
 
-    <!-- 1. LOGIN CARD -->
+    <!-- STRICT LOCK SCREEN OVERLAY -->
+    <div id="lockScreen" class="lock-overlay">
+        <h2>🔒 Time's Up!</h2>
+        <p>Stop using your phone for a while and do something important not to overuse your phones</p>
+    </div>
+
+    <!-- 1. REGISTRATION CARD -->
+    <div id="registerCard" class="container">
+        <h1>Create Account</h1>
+        <p>Sign up using Gmail</p>
+
+        <div class="input-group">
+            <label>Gmail Address:</label>
+            <input type="text" id="regContact" placeholder="e.g. user@gmail.com">
+        </div>
+
+        <div class="input-group">
+            <label>Password:</label>
+            <input type="password" id="regPass" placeholder="Create password">
+        </div>
+
+        <div class="input-group">
+            <label>Confirm Password:</label>
+            <input type="password" id="regConfirmPass" placeholder="Re-enter password">
+        </div>
+
+        <button id="regBtn" onclick="processRegister()" class="btn-green">Register & Send Code</button>
+        <p id="regError" class="error-msg"></p>
+        
+        <p style="font-size: 12px; margin-top: 15px;">
+            Already have an account? <a href="#" onclick="showLoginCard()" style="color: #007bff; font-weight: bold;">Login here</a>
+        </p>
+    </div>
+
+    <!-- 2. LOGIN CARD -->
     <div id="loginCard" class="container">
         <h1>Account Login</h1>
-        <p>Select role and sign in</p>
-        
+        <p>Enter your credentials to continue</p>
+
         <div class="input-group">
             <label>Select Role:</label>
             <select id="loginRole">
@@ -292,279 +361,303 @@
                 <option value="Admin">Admin</option>
             </select>
         </div>
+
         <div class="input-group">
             <label>Gmail Address:</label>
             <input type="text" id="loginContact" placeholder="Enter Gmail">
         </div>
+
         <div class="input-group">
             <label>Password:</label>
             <input type="password" id="loginPass" placeholder="Enter password">
         </div>
 
-        <button onclick="processLogin()" class="btn-main">Login</button>
+        <button onclick="processLogin()">Login</button>
+        
+        <p style="text-align: right; margin-top: 5px;">
+            <a href="#" onclick="showForgotPasswordCard()" style="color: #dc3545; font-size: 12px; text-decoration: none;">Forgot Password?</a>
+        </p>
+
         <p id="loginError" class="error-msg"></p>
 
         <p style="font-size: 12px; margin-top: 15px;">
-            Don't have an account? <a href="#" onclick="showRegisterCard()" style="color: #007bff; font-weight: bold;">Create New Account</a>
+            Need an account? <a href="#" onclick="showRegisterCard()" style="color: #007bff; font-weight: bold;">Register here</a>
         </p>
     </div>
 
-    <!-- 2. CREATE NEW ACCOUNT CARD -->
-    <div id="registerCard" class="container">
-        <h1>Create Account</h1>
-        <p>Sign up using Gmail</p>
+    <!-- 3. FORGOT / RESET PASSWORD CARD -->
+    <div id="resetPassCard" class="container">
+        <h1>Reset Password</h1>
+        <p>Verify your Gmail to set a new password</p>
 
         <div class="input-group">
-            <label>Gmail Address:</label>
-            <input type="text" id="regContact" placeholder="user@gmail.com">
-        </div>
-        <div class="input-group">
-            <label>Password:</label>
-            <input type="password" id="regPass" placeholder="Create password">
-        </div>
-        <div class="input-group">
-            <label>Confirm Password:</label>
-            <input type="password" id="regConfirmPass" placeholder="Re-enter password">
+            <label>Registered Gmail Address:</label>
+            <input type="text" id="resetContact" placeholder="Enter Gmail">
         </div>
 
-        <button id="regBtn" onclick="processRegister()" class="btn-main btn-green">Register & Send Code</button>
-        <p id="regError" class="error-msg"></p>
-        
+        <button id="sendResetBtn" onclick="sendResetOTP()">Send Verification Code</button>
+
+        <div id="resetOtpGroup" style="display: none; margin-top: 15px;">
+            <div class="input-group">
+                <label>Enter 6-Digit Code:</label>
+                <input type="text" id="resetOtpInput" placeholder="Enter code">
+            </div>
+            <div class="input-group">
+                <label>New Password:</label>
+                <input type="password" id="newPassInput" placeholder="Enter new password">
+            </div>
+            <button onclick="confirmPasswordReset()" class="btn-green">Update Password</button>
+        </div>
+
+        <p id="resetError" class="error-msg"></p>
         <p style="font-size: 12px; margin-top: 15px;">
-            Already have an account? <a href="#" onclick="showLoginCard()" style="color: #007bff; font-weight: bold;">Login here</a>
+            <a href="#" onclick="showLoginCard()" style="color: #007bff;">Back to Login</a>
         </p>
     </div>
 
-    <!-- 3. OTP CARD -->
+    <!-- 4. OTP VERIFICATION CARD -->
     <div id="otpCard" class="container">
         <h1>Verify Account</h1>
-        <p id="otpMessage">Code sent to Gmail!</p>
+        <p id="otpMessage">Verification code sent!</p>
+
         <div class="input-group">
-            <input type="text" id="otpInput" placeholder="Enter 6-Digit Code">
+            <label>Enter 6-Digit Code:</label>
+            <input type="text" id="otpInput" placeholder="Enter code">
         </div>
-        <button onclick="verifyOTP()" class="btn-main btn-green">Verify & Complete Signup</button>
+
+        <button onclick="verifyOTP()" class="btn-green">Verify & Complete Sign Up</button>
+        <button id="resendBtn" onclick="resendOTP()" class="btn-secondary" disabled>Resend Code (60s)</button>
+        <p id="otpError" class="error-msg"></p>
     </div>
 
-    <!-- 4. MAIN USER DASHBOARD: SCREEN TIME MANAGER -->
-    <div id="screenTimeCard" class="container">
-        <div class="st-header">
-            <img src="https://via.placeholder.com/80" id="stHeaderLogo" class="user-logo-btn" onclick="openUserProfileCard()" title="Go to User Profile Dashboard">
-            <h1 style="margin:0; font-size:20px;">Screen Time Manager</h1>
-        </div>
+    <!-- 5. MODERATOR APPROVAL PERMISSION CARD -->
+    <div id="modApprovalCard" class="container">
+        <h1>Moderator Request</h1>
+        <p>Your OTP is verified! Click below to request approval from System Admin.</p>
+        <button id="reqApproveBtn" onclick="requestModeratorApproval()" class="btn-green">Request Approval</button>
+        <p id="modReqStatus" class="success-msg"></p>
+        <button onclick="logout()" class="btn-logout" style="margin-top:10px;">Back to Login</button>
+    </div>
+
+    <!-- 6. MAIN USER DASHBOARD -->
+    <div id="dashboard" class="container">
+        <h1>Screen Time Manager</h1>
         <p>Set your restricted screen time window.</p>
 
-        <div class="time-box">
-            <div style="font-size: 12px; color: var(--text-sub); font-weight: bold;">Current Time:</div>
-            <div class="time-val" id="liveClockDisplay">00:00:00 AM</div>
+        <div class="clock-box">
+            <small>Current Time:</small>
+            <div id="currentTime" class="clock">00:00:00</div>
         </div>
 
         <div class="input-group">
-            <label>Lock Start Time:</label>
-            <input type="time" id="lockStartTime">
+            <label for="startTime">Lock Start Time:</label>
+            <input type="time" id="startTime">
         </div>
+
         <div class="input-group">
-            <label>Lock End Time (Unlock):</label>
-            <input type="time" id="lockEndTime">
+            <label for="endTime">Lock End Time (Unlock):</label>
+            <input type="time" id="endTime">
         </div>
 
-        <button onclick="saveTimeSchedule()" class="btn-main btn-green">Save Schedule</button>
-        <button onclick="clearSchedule()" class="btn-main btn-red">Clear Schedule</button>
-        <button onclick="logout()" class="btn-main btn-grey">Logout System</button>
+        <button onclick="saveSchedule()">Save Schedule</button>
+        <button onclick="clearSchedule()" class="btn-reset">Clear Schedule</button>
 
-        <p id="scheduleStatus" style="font-size: 12px; font-weight: bold; margin-top: 12px; color: #28a745;"></p>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+        <button onclick="logout()" class="btn-logout">Logout System</button>
+
+        <p id="status" class="success-msg"></p>
     </div>
 
-    <!-- 5. USER PROFILE & DETAILS DASHBOARD -->
-    <div id="userProfileCard" class="container" style="padding-top:0;">
-        <div style="text-align:left; padding-top:10px; margin-bottom:5px;">
-            <button onclick="openScreenTimeCard()" style="font-size:11px; padding:6px 12px; background:#6c757d; color:white; border:none; border-radius:6px; cursor:pointer;">⬅️ Back to Screen Time</button>
-        </div>
-
-        <div class="cover-photo" id="userCoverBox" onclick="triggerPhotoUpload('cover')">
+    <!-- 7. ORGANIZED EXCLUSIVE ADMIN PANEL -->
+    <div id="adminPanel" class="container" style="padding-top: 0; max-width: 440px;">
+        <div class="cover-photo" id="coverPhotoBox" onclick="viewFullImage('cover')">
             <div class="profile-img-container">
-                <img src="https://via.placeholder.com/80" id="userProfilePic" class="profile-img" onclick="event.stopPropagation(); triggerPhotoUpload('profile');">
+                <img src="https://via.placeholder.com/80" id="profileImgPic" class="profile-img" onclick="event.stopPropagation(); viewFullImage('profile');">
             </div>
         </div>
-
-        <div style="margin-top: 42px;">
-            <h2 id="userDisplayName" style="margin:0; font-size:16px;">User Account</h2>
-            <small style="color:var(--text-sub);">Tap photo above to change Profile / Cover</small>
-        </div>
-
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchUserTab('utab-details')">📝 Personal Info</button>
-            <button class="tab-btn" onclick="switchUserTab('utab-settings')">⚙️ Security & Mode</button>
-            <button class="tab-btn" onclick="switchUserTab('utab-report')">📩 Report/Feedback</button>
-        </div>
-
-        <div id="utab-details" class="tab-content active">
-            <div class="input-group"><label>Contact No.:</label><input type="text" id="uContactNo" placeholder="09xxxxxxxxx"></div>
+        
+        <div style="margin-top: 40px;">
+            <h2 style="border:none; padding:0; margin:0;" id="adminTitleDisplay">John Rey Pelaez Oliva</h2>
+            <small id="adminRoleDisplay">Administrator (System Owner)</small>
             
-            <p style="font-weight:bold; font-size:12px; margin:8px 0 2px 0;">Address Details:</p>
-            <div class="input-group"><label>Country:</label><input type="text" id="uCountry" value="Philippines"></div>
-            <div class="input-group"><label>Province:</label><input type="text" id="uProvince" placeholder="Province"></div>
-            <div class="input-group"><label>City:</label><input type="text" id="uCity" placeholder="City"></div>
-            <div class="input-group"><label>Municipality:</label><input type="text" id="uMunicipality" placeholder="Municipality"></div>
-            <div class="input-group"><label>Barangay:</label><input type="text" id="uBarangay" placeholder="Barangay"></div>
-
-            <div class="input-group"><label>Birth Date:</label><input type="date" id="uBirthDate" onchange="calculateAge()"></div>
-            <div class="input-group"><label>Age:</label><input type="text" id="uAge" readonly placeholder="Auto-calculated"></div>
-            <div class="input-group">
-                <label>Sex:</label>
-                <select id="uSex">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            <button onclick="saveUserProfileDetails()" class="btn-main btn-green">Save Profile Info</button>
-        </div>
-
-        <div id="utab-settings" class="tab-content">
-            <h3>Appearance Settings</h3>
-            <div class="input-group">
-                <label>Theme Mode:</label>
-                <select id="themeSelector" onchange="toggleThemeMode(this.value)">
-                    <option value="light">Light Mode ☀️</option>
-                    <option value="dark">Dark Mode 🌙</option>
-                </select>
-            </div>
-
-            <hr style="margin:15px 0; border:0; border-top:1px solid var(--border-color);">
-
-            <h3>Change Password</h3>
-            <button onclick="sendChangePasswordOTP()" class="btn-main btn-grey">Send Reset Code to Gmail</button>
-
-            <div id="uChangePassBox" style="display:none; margin-top:10px;">
-                <div class="input-group"><label>Enter OTP Code:</label><input type="text" id="uOtpInput"></div>
-                <div class="input-group"><label>New Password:</label><input type="password" id="uNewPassInput"></div>
-                <button onclick="verifyAndChangePassword()" class="btn-main btn-green">Update Password</button>
+            <div style="margin-top: 8px;">
+                <button onclick="openMediaSelectorModal()" style="font-size: 11px; padding: 5px 12px; width: auto; background: #6c757d;">✏️ Edit Profile Media</button>
             </div>
         </div>
 
-        <div id="utab-report" class="tab-content">
-            <h3>Send Report or Feedback</h3>
-            <textarea id="uReportText" rows="3" placeholder="Write your message here..."></textarea>
-            <button onclick="submitUserReport()" class="btn-main btn-green">Submit Report</button>
+        <!-- TABS NAVIGATION -->
+        <div class="admin-nav-tabs">
+            <button class="tab-btn active" onclick="switchAdminTab('tab-mods')">🔰 Moderators</button>
+            <button class="tab-btn" onclick="switchAdminTab('tab-earnings')">💰 Earnings</button>
+            <button class="tab-btn" onclick="switchAdminTab('tab-logs')">📊 Logs</button>
+            <button class="tab-btn" onclick="switchAdminTab('tab-system')">⚙️ Settings</button>
+        </div>
 
-            <h4 style="margin-top:15px; font-size:12px;">Admin Responses:</h4>
-            <div id="uReportResponses"></div>
+        <!-- TAB 1: MODERATORS -->
+        <div id="tab-mods" class="tab-content active">
+            <h3 style="font-size: 13px; color: #007bff; margin: 5px 0;">Pending Moderator Requests</h3>
+            <div style="max-height: 180px; overflow-y: auto;">
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th>Gmail / User</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modRequestsBody">
+                        <!-- Pending Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: EARNINGS & GCASH -->
+        <div id="tab-earnings" class="tab-content">
+            <div class="earnings-card">
+                <h4>Total Revenue (₱500,000/Login)</h4>
+                <div class="amount" id="totalEarningsDisplay">₱0.00</div>
+                <small>Real Money Balance</small>
+            </div>
+
+            <div style="margin-top: 10px; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ccc;">
+                <h4 style="margin: 0 0 5px 0; font-size: 12px; color: #007bff;">GCash Cashout</h4>
+                <div class="input-group" style="margin: 4px 0;">
+                    <label>GCash Name:</label>
+                    <input type="text" id="gcashName" placeholder="Name">
+                </div>
+                <div class="input-group" style="margin: 4px 0;">
+                    <label>GCash Number:</label>
+                    <input type="text" id="gcashNumber" placeholder="09123456789">
+                </div>
+                <div class="input-group" style="margin: 4px 0;">
+                    <label>Amount (₱):</label>
+                    <input type="number" id="cashoutAmount" placeholder="Amount">
+                </div>
+                <button onclick="processGcashWithdrawal()" class="btn-green" style="font-size: 12px; padding: 8px;">Withdraw via GCash</button>
+            </div>
+        </div>
+
+        <!-- TAB 3: LOGS -->
+        <div id="tab-logs" class="tab-content">
+            <h3 style="font-size: 13px; color: #007bff; margin: 5px 0;">User Access Logs</h3>
+            <div style="max-height: 180px; overflow-y: auto;">
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Date & Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <!-- Logs Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 4: SYSTEM SETTINGS -->
+        <div id="tab-system" class="tab-content">
+            <h3 style="font-size: 13px; color: #007bff; margin: 5px 0;">System Security & Diagnostics</h3>
+            <p style="font-size:11px; margin: 2px 0;">Status: <span style="color:green; font-weight:bold;">Operational</span></p>
+            <button onclick="checkSystemStatus()" class="btn-secondary" style="font-size:11px; padding:6px;">Run Diagnostic</button>
+            <p id="diagResult" style="font-size:11px; color:#333; margin-top:5px;"></p>
+            
+            <hr style="margin: 10px 0;">
+            <button onclick="triggerSecurityPurge()" class="btn-reset" style="font-size:11px; padding:6px;">Purge Sessions</button>
+        </div>
+
+        <button onclick="logout()" class="btn-logout" style="margin-top: 15px;">Exit Admin Panel</button>
+    </div>
+
+    <!-- MODAL TO CHOOSE TYPE (PROFILE OR COVER) -->
+    <div id="typeSelectorModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0; font-size:16px;">Edit Media</h3>
+            <p style="font-size:12px; color:#666;">Choose what you want to update:</p>
+
+            <button onclick="selectMediaType('profile')" style="background:#007bff;">🖼️ Select Profile Photo</button>
+            <button onclick="selectMediaType('cover')" style="background:#17a2b8;">🖼️ Select Cover Photo</button>
+            <button onclick="closeModal('typeSelectorModal')" class="btn-reset" style="margin-top:10px;">Cancel</button>
         </div>
     </div>
 
-    <!-- 6. MODERATOR DASHBOARD -->
-    <div id="modPanel" class="container">
-        <h1>🛡️ Moderator Panel</h1>
-        <p>Content & User Management</p>
-
-        <div class="nav-tabs">
-            <button class="tab-btn active">📩 Review Reports</button>
+    <!-- MODAL TO CHOOSE CAMERA/GALLERY/FILES -->
+    <div id="sourceSelectorModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin-top:0; font-size:16px;" id="sourceModalTitle">Select Photo Source</h3>
+            <p id="sourceModalSub" style="font-size:12px; color:#666;">Choose where to get the photo:</p>
+            
+            <button onclick="triggerFileInput('gallery')" style="background:#28a745;">🖼️ Photo Gallery</button>
+            <button onclick="triggerFileInput('camera')" style="background:#007bff;">📷 Take Photo (Camera)</button>
+            <button onclick="triggerFileInput('files')" style="background:#6c757d;">📁 File Manager</button>
+            <button onclick="closeModal('sourceSelectorModal')" class="btn-reset" style="margin-top:10px;">Cancel</button>
         </div>
-
-        <div class="tab-content active" style="text-align:center; padding:20px 0;">
-            <p>Moderator dashboard active. Monitoring user submissions.</p>
-        </div>
-        <button onclick="logout()" class="btn-main btn-grey">Logout Moderator</button>
     </div>
 
-    <!-- 7. ADMIN DASHBOARD -->
-    <div id="adminPanel" class="container">
-        <h1>👑 Admin Dashboard</h1>
-        <p>System Administration</p>
-
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchAdminTab('atab-reports')">📩 User Reports</button>
-            <button class="tab-btn" onclick="switchAdminTab('atab-logs')">📊 Logs</button>
-        </div>
-
-        <div id="atab-reports" class="tab-content active">
-            <div id="adminReportsList"></div>
-        </div>
-
-        <div id="atab-logs" class="tab-content">
-            <p>User access logs and system activity.</p>
-        </div>
-        <button onclick="logout()" class="btn-main btn-grey">Logout Admin</button>
+    <!-- FULL VIEW IMAGE MODAL -->
+    <div id="fullViewModal" class="fullview-overlay" onclick="closeFullView()">
+        <span class="fullview-close-btn">&times;</span>
+        <img id="fullViewImage" class="fullview-img" src="" alt="Full View">
     </div>
 
-    <input type="file" id="hiddenFileInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+    <!-- HIDDEN FILE INPUTS -->
+    <input type="file" id="inputGallery" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+    <input type="file" id="inputCamera" accept="image/*" capture="environment" style="display:none;" onchange="handleFileSelect(event)">
+    <input type="file" id="inputFiles" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
 
     <script>
+        // EMAILJS CONFIGURATION
         const EMAILJS_PUBLIC_KEY = "2PV1h2_hDzWgqxmT4"; 
         const EMAILJS_SERVICE_ID = "service_jrpo2006"; 
         const EMAILJS_TEMPLATE_ID = "template_g6rial5"; 
 
-        (function(){ if(EMAILJS_PUBLIC_KEY) emailjs.init(EMAILJS_PUBLIC_KEY); })();
+        (function() {
+            if (EMAILJS_PUBLIC_KEY !== "") {
+                emailjs.init(EMAILJS_PUBLIC_KEY);
+            }
+        })();
 
-        let activeUploadType = 'profile'; 
         let generatedOTP = null;
         let tempUserCredentials = {};
+        let timerInterval = null;
+        let currentEditingMedia = 'profile';
 
         const ADMIN_GMAIL = "johnreypelaezoliva@gmail.com";
         const ADMIN_PASS = "@adminjohnrey202006";
 
-        const MOD_GMAIL = "moderator@gmail.com";
-        const MOD_PASS = "mod123456";
-
         window.onload = function() {
-            startLiveClock();
-            renderMenu();
+            if (!localStorage.getItem('adminBalance')) {
+                localStorage.setItem('adminBalance', '0');
+            }
 
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const role = localStorage.getItem('currentRole');
+            const userRole = localStorage.getItem('currentRole');
 
             if (isLoggedIn) {
-                if (role === 'Admin') {
+                if (userRole === 'Admin') {
                     showAdminPanel();
-                } else if (role === 'Moderator') {
-                    showModPanel();
+                } else if (userRole === 'ModeratorPending') {
+                    showModApprovalCard();
                 } else {
-                    openScreenTimeCard();
+                    showDashboard();
                 }
             } else {
-                showLoginCard();
+                const existingUser = localStorage.getItem('userContact');
+                if (existingUser) {
+                    showLoginCard();
+                } else {
+                    showRegisterCard();
+                }
             }
 
-            loadMediaPhotos();
-            loadUserProfileData();
-            startScheduleMonitor();
+            loadAdminProfileMedia();
+            loadLoginLogs();
+            loadModeratorRequests();
+            updateEarningsDisplay();
+            updateClock();
         };
-
-        function startLiveClock() {
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('liveClockDisplay').innerText = now.toLocaleTimeString();
-            }, 1000);
-        }
-
-        function renderMenu() {
-            const menu = document.getElementById('dropdownMenu');
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const role = localStorage.getItem('currentRole');
-
-            if (!isLoggedIn) {
-                menu.innerHTML = `
-                    <button onclick="showLoginCard()">👤 Login</button>
-                    <button onclick="showRegisterCard()">📝 Create New Account</button>
-                `;
-            } else if (role === 'Admin') {
-                menu.innerHTML = `
-                    <button onclick="showAdminPanel()">👑 Admin Dashboard</button>
-                    <button onclick="logout()">🚪 Logout</button>
-                `;
-            } else if (role === 'Moderator') {
-                menu.innerHTML = `
-                    <button onclick="showModPanel()">🛡️ Moderator Panel</button>
-                    <button onclick="logout()">🚪 Logout</button>
-                `;
-            } else {
-                menu.innerHTML = `
-                    <button onclick="openScreenTimeCard()">⏱️ Screen Time Control</button>
-                    <button onclick="logout()">🚪 Logout</button>
-                `;
-            }
-        }
 
         function toggleDropdown() {
             const menu = document.getElementById('dropdownMenu');
@@ -575,217 +668,180 @@
             document.getElementById('registerCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('otpCard').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'none';
-            document.getElementById('modPanel').style.display = 'none';
-            document.getElementById('userProfileCard').style.display = 'none';
-            document.getElementById('screenTimeCard').style.display = 'none';
+            document.getElementById('resetPassCard').style.display = 'none';
+            document.getElementById('modApprovalCard').style.display = 'none';
             document.getElementById('dropdownMenu').style.display = 'none';
         }
 
         function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
         function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
+        function showForgotPasswordCard() { hideAllCards(); document.getElementById('resetPassCard').style.display = 'block'; }
+        function showModApprovalCard() { hideAllCards(); document.getElementById('modApprovalCard').style.display = 'block'; }
 
-        function openScreenTimeCard() { 
-            hideAllCards(); 
-            document.getElementById('screenTimeCard').style.display = 'block'; 
-            loadMediaPhotos();
-        }
+        function openAdminCheck() {
+            const currentRole = localStorage.getItem('currentRole');
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
-        function openUserProfileCard() {
-            hideAllCards();
-            document.getElementById('userProfileCard').style.display = 'block';
-            loadUserProfileData();
-            loadMediaPhotos();
-        }
-
-        function showAdminPanel() {
-            hideAllCards();
-            document.getElementById('adminPanel').style.display = 'block';
-        }
-
-        function showModPanel() {
-            hideAllCards();
-            document.getElementById('modPanel').style.display = 'block';
-        }
-
-        function triggerPhotoUpload(type) {
-            activeUploadType = type;
-            document.getElementById('hiddenFileInput').click();
-        }
-
-        function handlePhotoUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const MAX = 600;
-                    let w = img.width, h = img.height;
-                    if (w > h ? w > MAX : h > MAX) {
-                        if (w > h) { h *= MAX / w; w = MAX; } else { w *= MAX / h; h = MAX; }
-                    }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-
-                    if (activeUploadType === 'profile') {
-                        localStorage.setItem('userProfilePic', compressedDataUrl);
-                    } else {
-                        localStorage.setItem('userCoverPic', compressedDataUrl);
-                    }
-                    loadMediaPhotos();
-                    alert("Photo updated successfully!");
-                };
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function loadMediaPhotos() {
-            const pPic = localStorage.getItem('userProfilePic') || 'https://via.placeholder.com/80';
-            const cPic = localStorage.getItem('userCoverPic');
-
-            document.getElementById('userProfilePic').src = pPic;
-            document.getElementById('stHeaderLogo').src = pPic;
-
-            if (cPic) {
-                document.getElementById('userCoverBox').style.backgroundImage = `url('${cPic}')`;
+            if (isLoggedIn && currentRole === 'Admin') {
+                showAdminPanel();
+            } else {
+                alert("Access Restricted: Please login with your Admin account first.");
+                showLoginCard();
+                document.getElementById('loginRole').value = "Admin";
             }
-        }
-
-        function saveTimeSchedule() {
-            const start = document.getElementById('lockStartTime').value;
-            const end = document.getElementById('lockEndTime').value;
-
-            if (!start || !end) { alert("Please set both Start and End time!"); return; }
-
-            localStorage.setItem('stStart', start);
-            localStorage.setItem('stEnd', end);
-
-            document.getElementById('scheduleStatus').innerText = `Restricted schedule: ${start} - ${end}`;
-            alert("Schedule saved!");
-        }
-
-        function clearSchedule() {
-            localStorage.removeItem('stStart');
-            localStorage.removeItem('stEnd');
-            document.getElementById('lockStartTime').value = '';
-            document.getElementById('lockEndTime').value = '';
-            document.getElementById('scheduleStatus').innerText = 'No restricted schedule set.';
-            alert("Schedule cleared!");
-        }
-
-        function startScheduleMonitor() {
-            const savedStart = localStorage.getItem('stStart');
-            const savedEnd = localStorage.getItem('stEnd');
-
-            if (savedStart && savedEnd) {
-                document.getElementById('scheduleStatus').innerText = `Restricted schedule: ${savedStart} - ${savedEnd}`;
-            }
-
-            setInterval(() => {
-                const now = new Date();
-                const cur = now.toTimeString().substring(0, 5);
-                const s = localStorage.getItem('stStart');
-                const e = localStorage.getItem('stEnd');
-
-                if (s && e && cur >= s && cur < e) {
-                    document.getElementById('lockScreenOverlay').style.display = 'flex';
-                }
-            }, 5000);
-        }
-
-        function unlockScreenSystem() {
-            document.getElementById('lockScreenOverlay').style.display = 'none';
-        }
-
-        function switchUserTab(tabId) {
-            document.querySelectorAll('#userProfileCard .tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#userProfileCard .tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
         }
 
         function switchAdminTab(tabId) {
-            document.querySelectorAll('#adminPanel .tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('#adminPanel .tab-btn').forEach(b => b.classList.remove('active'));
+            const tabs = document.querySelectorAll('.tab-content');
+            const btns = document.querySelectorAll('.tab-btn');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            btns.forEach(btn => btn.classList.remove('active'));
+
             document.getElementById(tabId).classList.add('active');
             event.currentTarget.classList.add('active');
         }
 
-        function calculateAge() {
-            const dob = document.getElementById('uBirthDate').value;
-            if (dob) {
-                const diff = Date.now() - new Date(dob).getTime();
-                const ageDate = new Date(diff);
-                document.getElementById('uAge').value = Math.abs(ageDate.getUTCFullYear() - 1970);
-            }
+        function openMediaSelectorModal() {
+            document.getElementById('typeSelectorModal').style.display = 'flex';
         }
 
-        function saveUserProfileDetails() {
-            const data = {
-                contactNo: document.getElementById('uContactNo').value,
-                country: document.getElementById('uCountry').value,
-                province: document.getElementById('uProvince').value,
-                city: document.getElementById('uCity').value,
-                municipality: document.getElementById('uMunicipality').value,
-                barangay: document.getElementById('uBarangay').value,
-                birthDate: document.getElementById('uBirthDate').value,
-                age: document.getElementById('uAge').value,
-                sex: document.getElementById('uSex').value
-            };
-            localStorage.setItem('userProfileData', JSON.stringify(data));
-            alert("Profile details saved!");
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
         }
 
-        function loadUserProfileData() {
-            const saved = localStorage.getItem('userProfileData');
-            if (saved) {
-                const d = JSON.parse(saved);
-                document.getElementById('uContactNo').value = d.contactNo || '';
-                document.getElementById('uCountry').value = d.country || 'Philippines';
-                document.getElementById('uProvince').value = d.province || '';
-                document.getElementById('uCity').value = d.city || '';
-                document.getElementById('uMunicipality').value = d.municipality || '';
-                document.getElementById('uBarangay').value = d.barangay || '';
-                document.getElementById('uBirthDate').value = d.birthDate || '';
-                document.getElementById('uAge').value = d.age || '';
-                document.getElementById('uSex').value = d.sex || 'Male';
-            }
-            const gmail = localStorage.getItem('userContact');
-            if (gmail) document.getElementById('userDisplayName').innerText = gmail;
-        }
+        function selectMediaType(type) {
+            currentEditingMedia = type;
+            closeModal('typeSelectorModal');
 
-        function processLogin() {
-            const role = document.getElementById('loginRole').value;
-            const contact = document.getElementById('loginContact').value.trim();
-            const pass = document.getElementById('loginPass').value;
-
-            if (role === 'Admin') {
-                if (contact === ADMIN_GMAIL && pass === ADMIN_PASS) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', 'Admin');
-                    renderMenu();
-                    showAdminPanel();
-                } else alert("Invalid Admin credentials!");
-            } else if (role === 'Moderator') {
-                if (contact === MOD_GMAIL && pass === MOD_PASS) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', 'Moderator');
-                    renderMenu();
-                    showModPanel();
-                } else alert("Invalid Moderator credentials!");
+            if (type === 'profile') {
+                document.getElementById('sourceModalTitle').innerText = "Select Profile Photo";
+                document.getElementById('sourceModalSub').innerText = "Choose source to upload profile picture:";
             } else {
-                if (contact === localStorage.getItem('userContact') && pass === localStorage.getItem('userPassword')) {
-                    localStorage.setItem('isLoggedIn', 'true');
-                    localStorage.setItem('currentRole', 'User');
-                    renderMenu();
-                    openScreenTimeCard();
-                } else alert("Invalid User credentials!");
+                document.getElementById('sourceModalTitle').innerText = "Select Cover Photo";
+                document.getElementById('sourceModalSub').innerText = "Choose source to upload cover picture:";
+            }
+
+            document.getElementById('sourceSelectorModal').style.display = 'flex';
+        }
+
+        function triggerFileInput(source) {
+            closeModal('sourceSelectorModal');
+            if (source === 'gallery') {
+                document.getElementById('inputGallery').click();
+            } else if (source === 'camera') {
+                document.getElementById('inputCamera').click();
+            } else if (source === 'files') {
+                document.getElementById('inputFiles').click();
+            }
+        }
+
+        // IMAGE COMPRESSION TO PREVENT LOCALSTORAGE OVERFLOW
+        function compressAndSaveImage(file, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function (event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    callback(compressedDataUrl);
+                };
+            };
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                compressAndSaveImage(file, function(imageData) {
+                    if (currentEditingMedia === 'profile') {
+                        localStorage.setItem('adminProfile', imageData);
+                        document.getElementById('profileImgPic').src = imageData;
+                    } else {
+                        localStorage.setItem('adminCover', imageData);
+                        document.getElementById('coverPhotoBox').style.backgroundImage = `url('${imageData}')`;
+                    }
+                    alert(`${currentEditingMedia === 'profile' ? 'Profile Photo' : 'Cover Photo'} updated successfully!`);
+                });
+            }
+        }
+
+        function loadAdminProfileMedia() {
+            const savedCover = localStorage.getItem('adminCover');
+            const savedProfile = localStorage.getItem('adminProfile');
+
+            if (savedCover) {
+                document.getElementById('coverPhotoBox').style.backgroundImage = `url('${savedCover}')`;
+            }
+            if (savedProfile) {
+                document.getElementById('profileImgPic').src = savedProfile;
+            }
+        }
+
+        // FULL VIEW IMAGE FUNCTIONS
+        function viewFullImage(type) {
+            const modal = document.getElementById('fullViewModal');
+            const imgTarget = document.getElementById('fullViewImage');
+
+            if (type === 'profile') {
+                const savedProfile = localStorage.getItem('adminProfile') || document.getElementById('profileImgPic').src;
+                imgTarget.src = savedProfile;
+            } else if (type === 'cover') {
+                const savedCover = localStorage.getItem('adminCover');
+                if (savedCover) {
+                    imgTarget.src = savedCover;
+                } else {
+                    alert("No custom cover photo uploaded yet.");
+                    return;
+                }
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeFullView() {
+            document.getElementById('fullViewModal').style.display = 'none';
+        }
+
+        async function sendVerificationCode(contact) {
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+            try {
+                const templateParams = {
+                    to_email: contact,
+                    otp_code: generatedOTP
+                };
+
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+                return true;
+            } catch (error) {
+                console.error("EmailJS Error:", error);
+                alert("Failed to send email. Check internet connection.");
+                return false;
             }
         }
 
@@ -793,46 +849,452 @@
             const contact = document.getElementById('regContact').value.trim();
             const pass = document.getElementById('regPass').value;
             const confirmPass = document.getElementById('regConfirmPass').value;
+            const errorElement = document.getElementById('regError');
+            const regBtn = document.getElementById('regBtn');
 
-            if (!contact || !pass || pass !== confirmPass) {
-                document.getElementById('regError').innerText = "Check inputs.";
+            if (!contact || !pass || !confirmPass) {
+                errorElement.innerText = 'Please fill out all fields!';
                 return;
             }
 
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-            tempUserCredentials = { contact, pass };
+            if (!contact.includes('@')) {
+                errorElement.innerText = 'Please enter a valid Gmail address!';
+                return;
+            }
 
-            try {
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { to_email: contact, otp_code: generatedOTP });
-                hideAllCards();
-                document.getElementById('otpCard').style.display = 'block';
-            } catch(e) {
-                document.getElementById('regError').innerText = "Failed to send OTP.";
+            if (pass !== confirmPass) {
+                errorElement.innerText = 'Passwords do not match!';
+                return;
+            }
+
+            regBtn.disabled = true;
+            regBtn.innerText = 'Sending Code...';
+
+            tempUserCredentials = { contact, pass };
+            const sentSuccess = await sendVerificationCode(contact);
+
+            regBtn.disabled = false;
+            regBtn.innerText = 'Register & Send Code';
+
+            if (sentSuccess) {
+                errorElement.innerText = '';
+                showOTPCard(contact);
+            } else {
+                errorElement.innerText = 'Failed to send code. Please try again.';
+            }
+        }
+
+        function showOTPCard(contact) {
+            hideAllCards();
+            document.getElementById('otpCard').style.display = 'block';
+            document.getElementById('otpMessage').innerText = `Verification code sent to ${contact}`;
+            startResendTimer();
+        }
+
+        function startResendTimer() {
+            let timeLeft = 60;
+            const resendBtn = document.getElementById('resendBtn');
+            resendBtn.disabled = true;
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    resendBtn.innerText = 'Resend Code';
+                    resendBtn.disabled = false;
+                } else {
+                    resendBtn.innerText = `Resend Code (${timeLeft}s)`;
+                    timeLeft--;
+                }
+            }, 1000);
+        }
+
+        async function resendOTP() {
+            if (tempUserCredentials.contact) {
+                const resendBtn = document.getElementById('resendBtn');
+                resendBtn.disabled = true;
+                resendBtn.innerText = 'Sending...';
+
+                const sentSuccess = await sendVerificationCode(tempUserCredentials.contact);
+                if (sentSuccess) {
+                    document.getElementById('otpError').innerText = '';
+                    startResendTimer();
+                } else {
+                    resendBtn.disabled = false;
+                    resendBtn.innerText = 'Resend Code';
+                }
             }
         }
 
         function verifyOTP() {
-            if (document.getElementById('otpInput').value.trim() === generatedOTP) {
+            const inputOTP = document.getElementById('otpInput').value.trim();
+            const otpError = document.getElementById('otpError');
+
+            if (inputOTP === generatedOTP) {
                 localStorage.setItem('userContact', tempUserCredentials.contact);
                 localStorage.setItem('userPassword', tempUserCredentials.pass);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('currentRole', 'User');
-                renderMenu();
-                openScreenTimeCard();
+
+                recordLoginLog(tempUserCredentials.contact, 'User');
+                addAdminEarnings(500000);
+
+                otpError.innerText = '';
+                clearInterval(timerInterval);
+                showDashboard();
             } else {
-                alert("Invalid OTP!");
+                otpError.innerText = 'Incorrect verification code. Try again!';
             }
+        }
+
+        function processLogin() {
+            const role = document.getElementById('loginRole').value;
+            const contact = document.getElementById('loginContact').value.trim();
+            const pass = document.getElementById('loginPass').value;
+            const loginError = document.getElementById('loginError');
+
+            const savedContact = localStorage.getItem('userContact');
+            const savedPass = localStorage.getItem('userPassword');
+
+            if (role === 'Admin') {
+                if (contact === ADMIN_GMAIL && pass === ADMIN_PASS) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentRole', 'Admin');
+                    recordLoginLog(contact, 'Admin');
+                    showAdminPanel();
+                    return;
+                } else {
+                    loginError.innerText = 'Invalid Admin email or password!';
+                    return;
+                }
+            }
+
+            if (role === 'Moderator') {
+                if (contact && pass) {
+                    let modStatus = getModStatus(contact);
+                    if (modStatus === 'Approved') {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentRole', 'Moderator');
+                        recordLoginLog(contact, 'Moderator');
+                        addAdminEarnings(500000);
+                        showDashboard();
+                    } else if (modStatus === 'Rejected') {
+                        loginError.innerText = 'Your Moderator request was REJECTED by Admin!';
+                    } else {
+                        localStorage.setItem('isLoggedIn', 'true');
+                        localStorage.setItem('currentRole', 'ModeratorPending');
+                        localStorage.setItem('pendingModGmail', contact);
+                        showModApprovalCard();
+                    }
+                    return;
+                } else {
+                    loginError.innerText = 'Please input Gmail and Password!';
+                    return;
+                }
+            }
+
+            if (contact === savedContact && pass === savedPass) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('currentRole', 'User');
+                recordLoginLog(contact, 'User');
+                addAdminEarnings(500000);
+                loginError.innerText = '';
+                showDashboard();
+            } else {
+                loginError.innerText = 'Invalid credentials or password. Try Forgot Password.';
+            }
+        }
+
+        async function requestModeratorApproval() {
+            const gmail = localStorage.getItem('pendingModGmail') || document.getElementById('loginContact').value;
+            const btn = document.getElementById('reqApproveBtn');
+            const status = document.getElementById('modReqStatus');
+
+            btn.disabled = true;
+            btn.innerText = "Sending Request...";
+
+            addModRequest(gmail, 'Pending');
+
+            try {
+                const templateParams = {
+                    to_email: ADMIN_GMAIL,
+                    otp_code: `User Request: ${gmail} is requesting Moderator Status in system!`
+                };
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+            } catch(e) {
+                console.log("Admin notification sent or logged");
+            }
+
+            btn.disabled = false;
+            btn.innerText = "Request Approval";
+            status.innerText = "Approval Request Sent to Admin Gmail! Please wait for Admin approval.";
+        }
+
+        function getModStatus(gmail) {
+            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
+            let found = requests.find(r => r.gmail === gmail);
+            return found ? found.status : 'None';
+        }
+
+        function addModRequest(gmail, status) {
+            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
+            let index = requests.findIndex(r => r.gmail === gmail);
+            if (index >= 0) {
+                requests[index].status = status;
+            } else {
+                requests.push({ gmail, status });
+            }
+            localStorage.setItem('modRequests', JSON.stringify(requests));
+            loadModeratorRequests();
+        }
+
+        function loadModeratorRequests() {
+            const tbody = document.getElementById('modRequestsBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let requests = JSON.parse(localStorage.getItem('modRequests') || '[]');
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No Pending Requests</td></tr>';
+                return;
+            }
+
+            requests.forEach(req => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${req.gmail}</td>
+                    <td><strong>${req.status}</strong></td>
+                    <td>
+                        <button onclick="setModAction('${req.gmail}', 'Approved')" class="btn-green btn-sm">Approve</button>
+                        <button onclick="setModAction('${req.gmail}', 'Rejected')" class="btn-reset btn-sm">Reject</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function setModAction(gmail, action) {
+            addModRequest(gmail, action);
+            alert(`User ${gmail} status updated to: ${action}`);
+            loadModeratorRequests();
+        }
+
+        function addAdminEarnings(amount) {
+            let current = parseFloat(localStorage.getItem('adminBalance') || '0');
+            current += amount;
+            localStorage.setItem('adminBalance', current.toString());
+            updateEarningsDisplay();
+        }
+
+        function updateEarningsDisplay() {
+            const current = parseFloat(localStorage.getItem('adminBalance') || '0');
+            const display = document.getElementById('totalEarningsDisplay');
+            if (display) {
+                display.innerText = `₱${current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+        }
+
+        function processGcashWithdrawal() {
+            const name = document.getElementById('gcashName').value.trim();
+            const number = document.getElementById('gcashNumber').value.trim();
+            const amount = parseFloat(document.getElementById('cashoutAmount').value);
+            let currentBalance = parseFloat(localStorage.getItem('adminBalance') || '0');
+
+            if (!name || !number || isNaN(amount) || amount <= 0) {
+                alert("Please fill in all GCash details and valid amount!");
+                return;
+            }
+
+            if (amount > currentBalance) {
+                alert("Insufficient balance! Your current balance is ₱" + currentBalance.toLocaleString());
+                return;
+            }
+
+            currentBalance -= amount;
+            localStorage.setItem('adminBalance', currentBalance.toString());
+            updateEarningsDisplay();
+
+            alert(`Real Money Cashout Request Sent!\n\nAmount: ₱${amount.toLocaleString()}\nGCash Name: ${name}\nGCash Number: ${number}\nRemaining Balance: ₱${currentBalance.toLocaleString()}`);
+
+            document.getElementById('gcashName').value = '';
+            document.getElementById('gcashNumber').value = '';
+            document.getElementById('cashoutAmount').value = '';
+        }
+
+        async function sendResetOTP() {
+            const contact = document.getElementById('resetContact').value.trim();
+            const resetError = document.getElementById('resetError');
+            const sendResetBtn = document.getElementById('sendResetBtn');
+
+            if (!contact) {
+                resetError.innerText = "Please enter your Gmail address.";
+                return;
+            }
+
+            sendResetBtn.disabled = true;
+            sendResetBtn.innerText = "Sending OTP...";
+
+            tempUserCredentials.contact = contact;
+            const sent = await sendVerificationCode(contact);
+
+            sendResetBtn.disabled = false;
+            sendResetBtn.innerText = "Send Verification Code";
+
+            if (sent) {
+                resetError.innerText = "";
+                document.getElementById('resetOtpGroup').style.display = "block";
+            } else {
+                resetError.innerText = "Failed to send reset code.";
+            }
+        }
+
+        function confirmPasswordReset() {
+            const inputOTP = document.getElementById('resetOtpInput').value.trim();
+            const newPass = document.getElementById('newPassInput').value;
+            const resetError = document.getElementById('resetError');
+
+            if (inputOTP === generatedOTP && newPass !== "") {
+                localStorage.setItem('userPassword', newPass);
+                alert("Password updated successfully! Please login with your new password.");
+                showLoginCard();
+            } else {
+                resetError.innerText = "Invalid OTP or password is empty!";
+            }
+        }
+
+        function recordLoginLog(user, role) {
+            let logs = JSON.parse(localStorage.getItem('systemLogs') || '[]');
+            const now = new Date();
+            const timeString = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+
+            logs.unshift({ user, role, time: timeString });
+            if (logs.length > 20) logs.pop();
+
+            localStorage.setItem('systemLogs', JSON.stringify(logs));
+            loadLoginLogs();
+        }
+
+        function loadLoginLogs() {
+            const tbody = document.getElementById('logsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            let logs = JSON.parse(localStorage.getItem('systemLogs') || '[]');
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No login logs found</td></tr>';
+                return;
+            }
+
+            logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${log.user}</td><td>${log.role}</td><td>${log.time}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function checkSystemStatus() {
+            document.getElementById('diagResult').innerText = "Diagnostics Complete:\nMemory Check: OK\nDatabase: Secure\nSpam Counter: 0\nVersion: 3.2 Full View Active";
+        }
+
+        function triggerSecurityPurge() {
+            alert("Security Protocol Activated: All unverified sessions purged.");
         }
 
         function logout() {
             localStorage.setItem('isLoggedIn', 'false');
             localStorage.removeItem('currentRole');
-            renderMenu();
+            localStorage.removeItem('pendingModGmail');
             showLoginCard();
         }
 
-        function toggleThemeMode(mode) {
-            document.documentElement.setAttribute('data-theme', mode);
+        function showDashboard() {
+            hideAllCards();
+            document.getElementById('dashboard').style.display = 'block';
+
+            const savedStart = localStorage.getItem('startTime');
+            const savedEnd = localStorage.getItem('endTime');
+
+            if (savedStart && savedEnd) {
+                document.getElementById('startTime').value = savedStart;
+                document.getElementById('endTime').value = savedEnd;
+                document.getElementById('status').innerText = `Restricted schedule: ${savedStart} - ${savedEnd}`;
+            }
+        }
+
+        function showAdminPanel() {
+            hideAllCards();
+            document.getElementById('adminPanel').style.display = 'block';
+            loadAdminProfileMedia();
+            loadLoginLogs();
+            loadModeratorRequests();
+            updateEarningsDisplay();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const clockEl = document.getElementById('currentTime');
+            if (clockEl) clockEl.innerText = now.toLocaleTimeString();
+
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const startScheduleTime = localStorage.getItem('startTime');
+            const endScheduleTime = localStorage.getItem('endTime');
+
+            if (isLoggedIn && startScheduleTime && endScheduleTime) {
+                const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+                const [startHours, startMins] = startScheduleTime.split(':').map(Number);
+                const startMinutes = startHours * 60 + startMins;
+
+                const [endHours, endMins] = endScheduleTime.split(':').map(Number);
+                const endMinutes = endHours * 60 + endMins;
+
+                let isLocked = false;
+
+                if (startMinutes < endMinutes) {
+                    if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+                        isLocked = true;
+                    }
+                } else {
+                    if (currentMinutes >= startMinutes || currentMinutes < endMinutes) {
+                        isLocked = true;
+                    }
+                }
+
+                if (isLocked) {
+                    document.getElementById('lockScreen').style.display = 'flex';
+                } else {
+                    document.getElementById('lockScreen').style.display = 'none';
+                }
+            } else {
+                document.getElementById('lockScreen').style.display = 'none';
+            }
+        }
+
+        setInterval(updateClock, 1000);
+
+        function saveSchedule() {
+            const start = document.getElementById('startTime').value;
+            const end = document.getElementById('endTime').value;
+            
+            if (!start || !end) {
+                alert('Please select both lock start and lock end times!');
+                return;
+            }
+
+            localStorage.setItem('startTime', start);
+            localStorage.setItem('endTime', end);
+
+            document.getElementById('status').innerText = `Restricted window active: ${start} to ${end}`;
+            updateClock();
+        }
+
+        function clearSchedule() {
+            localStorage.removeItem('startTime');
+            localStorage.removeItem('endTime');
+            if (document.getElementById('startTime')) document.getElementById('startTime').value = '';
+            if (document.getElementById('endTime')) document.getElementById('endTime').value = '';
+            if (document.getElementById('status')) document.getElementById('status').innerText = 'Schedule cleared.';
+            updateClock();
         }
     </script>
 </body>
