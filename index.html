@@ -1,304 +1,774 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automated Screen Time Management</title>
-    <!-- EmailJS SDK para sa totoong Gmail Verification -->
+    <title>Screen Time Manager & User System</title>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #1a1a1a;
+            --text-sub: #555;
+            --border-color: #ccc;
+            --input-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: rgba(30, 30, 30, 0.95);
+            --text-color: #f1f1f1;
+            --text-sub: #aaa;
+            --border-color: #444;
+            --input-bg: #2a2a2a;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background 0.3s, color 0.3s;
+        }
+
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            background-color: var(--bg-color);
             background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('IMG_7340.jpeg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
+            color: var(--text-color);
         }
 
+        /* TOP NAVIGATION MENU */
+        .top-nav {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .profile-menu-btn {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 14px;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 190px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .dropdown-menu button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: none;
+            color: var(--text-color);
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .dropdown-menu button:hover {
+            background: rgba(0,123,255,0.1);
+        }
+
+        /* MAIN CONTAINER CARD */
         .container {
-            background: rgba(255, 255, 255, 0.88);
+            background: var(--card-bg);
+            color: var(--text-color);
             backdrop-filter: blur(10px);
-            padding: 25px;
-            border-radius: 16px;
+            padding: 24px;
+            border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 360px;
+            max-width: 400px;
             width: 90%;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+            position: relative;
         }
 
-        h1 { font-size: 22px; color: #1a1a1a; margin-bottom: 5px; }
-        h2 { font-size: 16px; color: #444; margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; }
-        p { font-size: 14px; color: #555; }
-
-        .clock-box {
-            background: rgba(0, 123, 255, 0.08);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(0, 123, 255, 0.15);
-        }
-        .clock { font-size: 24px; font-weight: bold; color: #007bff; }
+        h1 { font-size: 22px; margin-bottom: 5px; font-weight: 700; }
+        p { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
 
         .input-group {
             margin: 12px 0;
             text-align: left;
         }
-        label { font-size: 13px; font-weight: bold; color: #333; }
+        label { font-size: 12px; font-weight: bold; color: var(--text-color); display: block; margin-bottom: 4px; }
         
-        input[type="text"], input[type="password"], input[type="time"] {
+        input[type="text"], input[type="password"], input[type="time"], input[type="number"], input[type="date"], select, textarea {
             width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
             box-sizing: border-box;
-            background: rgba(255, 255, 255, 0.85);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 14px;
+            text-align: center;
         }
 
-        button {
+        button.btn-main {
             width: 100%;
             background-color: #007bff;
             color: white;
             border: none;
             padding: 12px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             margin-top: 10px;
-            transition: 0.3s background-color;
         }
-        button:hover { opacity: 0.9; }
-        button:disabled { background-color: #a5a5a5; cursor: not-allowed; opacity: 0.7; }
+        button.btn-main:hover { opacity: 0.9; }
 
-        .btn-green { background-color: #28a745; }
-        .btn-reset { background-color: #dc3545; }
-        .btn-logout { background-color: #6c757d; }
-        .btn-secondary { background-color: #6c757d; }
+        .btn-green { background-color: #007bff !important; }
+        .btn-red { background-color: #dc3545 !important; }
+        .btn-grey { background-color: #6c757d !important; }
 
-        #dashboard, #otpCard, #loginCard { display: none; }
-        .error-msg { color: #dc3545; font-size: 13px; margin-top: 10px; font-weight: bold; }
-        .success-msg { color: #28a745; font-size: 13px; margin-top: 10px; font-weight: bold; }
+        #registerCard, #loginCard, #otpCard, #adminPanel, #userProfileCard, #screenTimeCard { display: none; }
+        .error-msg { color: #dc3545; font-size: 12px; margin-top: 8px; font-weight: bold; }
 
-        /* STRICT LOCK SCREEN OVERLAY (NO UNLOCK/LOGOUT BUTTONS) */
-        .lock-overlay {
+        /* SCREEN TIME HEADER & PROFILE LOGO */
+        .st-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .user-logo-btn {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 2px solid #007bff;
+            object-fit: cover;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .user-logo-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* CURRENT TIME DISPLAY BOX */
+        .time-box {
+            background: rgba(0, 123, 255, 0.12);
+            border: 1px solid rgba(0, 123, 255, 0.2);
+            border-radius: 12px;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .time-box .time-val {
+            font-size: 24px;
+            font-weight: 800;
+            color: #007bff;
+            margin-top: 2px;
+        }
+
+        /* USER PROFILE HEADER (COVER & PROFILE PIC) */
+        .cover-photo {
+            width: 100%;
+            height: 120px;
+            background-color: #007bff;
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px 12px 0 0;
+            position: relative;
+            cursor: pointer;
+        }
+        .profile-img-container {
+            position: absolute;
+            bottom: -35px;
+            left: calc(50% - 40px);
+            width: 80px;
+            height: 80px;
+        }
+        .profile-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: #eee;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        /* TABS NAV */
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            margin-top: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .tab-btn {
+            background: var(--input-bg);
+            color: var(--text-color);
+            padding: 6px 12px;
+            font-size: 11px;
+            border-radius: 6px 6px 0 0;
+            white-space: nowrap;
+            border: none;
+            cursor: pointer;
+        }
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            text-align: left;
+            margin-top: 12px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* LOCK OVERLAY */
+        #lockScreenOverlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background-color: #dc3545;
-            color: white;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000;
+            color: #fff;
             z-index: 99999;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 30px;
-            box-sizing: border-box;
-        }
-        .lock-overlay h2 { 
-            font-size: 32px; 
-            margin-bottom: 20px; 
-            border: none; 
-            padding: 0; 
-            color: #ffffff; 
-        }
-        .lock-overlay p { 
-            font-size: 20px; 
-            color: #ffffff; 
-            line-height: 1.5; 
-            max-width: 400px;
-            font-weight: 500;
         }
     </style>
 </head>
 <body>
 
-    <!-- STRICT LOCK SCREEN OVERLAY -->
-    <div id="lockScreen" class="lock-overlay">
-        <h2>🔒 Time's Up!</h2>
-        <p>Stop using your phone for a while and do something important not to overuse your phones</p>
+    <!-- LOCK SCREEN OVERLAY -->
+    <div id="lockScreenOverlay">
+        <h1>🔒 SCREEN LOCKED</h1>
+        <p>Restricted screen time active.</p>
+        <button onclick="unlockScreenSystem()" class="btn-main btn-green" style="width:auto; padding:10px 20px;">Unlock System</button>
     </div>
 
-    <!-- 1. REGISTRATION CARD -->
+    <!-- TOP MENU DROPDOWN -->
+    <div class="top-nav">
+        <button class="profile-menu-btn" onclick="toggleDropdown()">
+            👤 Menu ▾
+        </button>
+        <div id="dropdownMenu" class="dropdown-menu"></div>
+    </div>
+
+    <!-- 1. LOGIN CARD -->
+    <div id="loginCard" class="container">
+        <h1>Account Login</h1>
+        <p>Select role and sign in</p>
+        
+        <div class="input-group">
+            <label>Select Role:</label>
+            <select id="loginRole">
+                <option value="User">User</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Gmail Address:</label>
+            <input type="text" id="loginContact" placeholder="Enter Gmail">
+        </div>
+        <div class="input-group">
+            <label>Password:</label>
+            <input type="password" id="loginPass" placeholder="Enter password">
+        </div>
+
+        <button onclick="processLogin()" class="btn-main">Login</button>
+        <p id="loginError" class="error-msg"></p>
+
+        <p style="font-size: 12px; margin-top: 15px;">
+            Don't have an account? <a href="#" onclick="showRegisterCard()" style="color: #007bff; font-weight: bold;">Create New Account</a>
+        </p>
+    </div>
+
+    <!-- 2. CREATE NEW ACCOUNT CARD -->
     <div id="registerCard" class="container">
         <h1>Create Account</h1>
         <p>Sign up using Gmail</p>
 
         <div class="input-group">
             <label>Gmail Address:</label>
-            <input type="text" id="regContact" placeholder="e.g. user@gmail.com">
+            <input type="text" id="regContact" placeholder="user@gmail.com">
         </div>
-
         <div class="input-group">
             <label>Password:</label>
             <input type="password" id="regPass" placeholder="Create password">
         </div>
-
         <div class="input-group">
             <label>Confirm Password:</label>
             <input type="password" id="regConfirmPass" placeholder="Re-enter password">
         </div>
 
-        <button id="regBtn" onclick="processRegister()" class="btn-green">Register & Send Code</button>
+        <button id="regBtn" onclick="processRegister()" class="btn-main btn-green">Register & Send Code</button>
         <p id="regError" class="error-msg"></p>
         
-        <p style="font-size: 13px; margin-top: 15px;">
+        <p style="font-size: 12px; margin-top: 15px;">
             Already have an account? <a href="#" onclick="showLoginCard()" style="color: #007bff; font-weight: bold;">Login here</a>
         </p>
     </div>
 
-    <!-- 2. LOGIN CARD -->
-    <div id="loginCard" class="container">
-        <h1>Account Login</h1>
-        <p>Enter your credentials to continue</p>
-
-        <div class="input-group">
-            <label>Gmail Address:</label>
-            <input type="text" id="loginContact" placeholder="Enter Gmail">
-        </div>
-
-        <div class="input-group">
-            <label>Password:</label>
-            <input type="password" id="loginPass" placeholder="Enter password">
-        </div>
-
-        <button onclick="processLogin()">Login</button>
-        <p id="loginError" class="error-msg"></p>
-
-        <p style="font-size: 13px; margin-top: 15px;">
-            Need an account? <a href="#" onclick="showRegisterCard()" style="color: #007bff; font-weight: bold;">Register here</a>
-        </p>
-    </div>
-
-    <!-- 3. OTP VERIFICATION CARD -->
+    <!-- 3. OTP CARD -->
     <div id="otpCard" class="container">
         <h1>Verify Account</h1>
-        <p id="otpMessage">Verification code sent!</p>
-
+        <p id="otpMessage">Code sent to Gmail!</p>
         <div class="input-group">
-            <label>Enter 6-Digit Code:</label>
-            <input type="text" id="otpInput" placeholder="Enter code">
+            <input type="text" id="otpInput" placeholder="Enter 6-Digit Code">
         </div>
-
-        <button onclick="verifyOTP()" class="btn-green">Verify & Complete Sign Up</button>
-        <button id="resendBtn" onclick="resendOTP()" class="btn-secondary" disabled>Resend Code (60s)</button>
-        <p id="otpError" class="error-msg"></p>
+        <button onclick="verifyOTP()" class="btn-main btn-green">Verify & Complete Signup</button>
     </div>
 
-    <!-- 4. MAIN DASHBOARD -->
-    <div id="dashboard" class="container">
-        <h1>Screen Time Manager</h1>
+    <!-- 4. MAIN USER DASHBOARD: SCREEN TIME MANAGER -->
+    <div id="screenTimeCard" class="container">
+        <div class="st-header">
+            <!-- PROFILE ICON AT THE UPPER LEFT (CLICKABLE TO OPEN USER DASHBOARD/PROFILE) -->
+            <img src="https://via.placeholder.com/80" id="stHeaderLogo" class="user-logo-btn" onclick="openUserProfileCard()" title="Go to User Profile Dashboard">
+            <h1 style="margin:0; font-size:20px;">Screen Time Manager</h1>
+        </div>
         <p>Set your restricted screen time window.</p>
 
-        <div class="clock-box">
-            <small>Current Time:</small>
-            <div id="currentTime" class="clock">00:00:00</div>
+        <div class="time-box">
+            <div style="font-size: 12px; color: var(--text-sub); font-weight: bold;">Current Time:</div>
+            <div class="time-val" id="liveClockDisplay">00:00:00 AM</div>
         </div>
 
         <div class="input-group">
-            <label for="startTime">Lock Start Time:</label>
-            <input type="time" id="startTime">
+            <label>Lock Start Time:</label>
+            <input type="time" id="lockStartTime">
         </div>
-
         <div class="input-group">
-            <label for="endTime">Lock End Time (Unlock):</label>
-            <input type="time" id="endTime">
+            <label>Lock End Time (Unlock):</label>
+            <input type="time" id="lockEndTime">
         </div>
 
-        <button onclick="saveSchedule()">Save Schedule</button>
-        <button onclick="clearSchedule()" class="btn-reset">Clear Schedule</button>
+        <button onclick="saveTimeSchedule()" class="btn-main btn-green">Save Schedule</button>
+        <button onclick="clearSchedule()" class="btn-main btn-red">Clear Schedule</button>
+        <button onclick="logout()" class="btn-main btn-grey">Logout System</button>
 
-        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
-        <button onclick="logout()" class="btn-logout">Logout System</button>
-
-        <p id="status" class="success-msg"></p>
+        <p id="scheduleStatus" style="font-size: 12px; font-weight: bold; margin-top: 12px; color: #28a745;"></p>
     </div>
 
+    <!-- 5. USER PROFILE & DETAILS DASHBOARD (OPENED FROM LOGO CLICK) -->
+    <div id="userProfileCard" class="container" style="padding-top:0;">
+        <div style="text-align:left; padding-top:10px; margin-bottom:5px;">
+            <button onclick="openScreenTimeCard()" style="font-size:11px; padding:6px 12px; background:#6c757d; color:white; border:none; border-radius:6px; cursor:pointer;">⬅️ Back to Screen Time</button>
+        </div>
+
+        <!-- COVER & PROFILE PHOTO DISPLAY -->
+        <div class="cover-photo" id="userCoverBox" onclick="triggerPhotoUpload('cover')">
+            <div class="profile-img-container">
+                <img src="https://via.placeholder.com/80" id="userProfilePic" class="profile-img" onclick="event.stopPropagation(); triggerPhotoUpload('profile');">
+            </div>
+        </div>
+
+        <div style="margin-top: 42px;">
+            <h2 id="userDisplayName" style="margin:0; font-size:16px;">User Account</h2>
+            <small style="color:var(--text-sub);">Tap photo above to change Profile / Cover</small>
+        </div>
+
+        <!-- USER NAVIGATION TABS -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchUserTab('utab-details')">📝 Personal Info</button>
+            <button class="tab-btn" onclick="switchUserTab('utab-settings')">⚙️ Security & Mode</button>
+            <button class="tab-btn" onclick="switchUserTab('utab-report')">📩 Report/Feedback</button>
+        </div>
+
+        <!-- TAB 1: PERSONAL INFO -->
+        <div id="utab-details" class="tab-content active">
+            <div class="input-group"><label>Contact No.:</label><input type="text" id="uContactNo" placeholder="09xxxxxxxxx"></div>
+            
+            <p style="font-weight:bold; font-size:12px; margin:8px 0 2px 0;">Address Details:</p>
+            <div class="input-group"><label>Country:</label><input type="text" id="uCountry" value="Philippines"></div>
+            <div class="input-group"><label>Province:</label><input type="text" id="uProvince" placeholder="Province"></div>
+            <div class="input-group"><label>City:</label><input type="text" id="uCity" placeholder="City"></div>
+            <div class="input-group"><label>Municipality:</label><input type="text" id="uMunicipality" placeholder="Municipality"></div>
+            <div class="input-group"><label>Barangay:</label><input type="text" id="uBarangay" placeholder="Barangay"></div>
+
+            <div class="input-group"><label>Birth Date:</label><input type="date" id="uBirthDate" onchange="calculateAge()"></div>
+            <div class="input-group"><label>Age:</label><input type="text" id="uAge" readonly placeholder="Auto-calculated"></div>
+            <div class="input-group">
+                <label>Sex:</label>
+                <select id="uSex">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <button onclick="saveUserProfileDetails()" class="btn-main btn-green">Save Profile Info</button>
+        </div>
+
+        <!-- TAB 2: SECURITY & THEME MODE -->
+        <div id="utab-settings" class="tab-content">
+            <h3>Appearance Settings</h3>
+            <div class="input-group">
+                <label>Theme Mode:</label>
+                <select id="themeSelector" onchange="toggleThemeMode(this.value)">
+                    <option value="light">Light Mode ☀️</option>
+                    <option value="dark">Dark Mode 🌙</option>
+                </select>
+            </div>
+
+            <hr style="margin:15px 0; border:0; border-top:1px solid var(--border-color);">
+
+            <h3>Change Password</h3>
+            <button onclick="sendChangePasswordOTP()" class="btn-main btn-grey">Send Reset Code to Gmail</button>
+
+            <div id="uChangePassBox" style="display:none; margin-top:10px;">
+                <div class="input-group"><label>Enter OTP Code:</label><input type="text" id="uOtpInput"></div>
+                <div class="input-group"><label>New Password:</label><input type="password" id="uNewPassInput"></div>
+                <button onclick="verifyAndChangePassword()" class="btn-main btn-green">Update Password</button>
+            </div>
+        </div>
+
+        <!-- TAB 3: REPORT / FEEDBACK -->
+        <div id="utab-report" class="tab-content">
+            <h3>Send Report or Feedback</h3>
+            <textarea id="uReportText" rows="3" placeholder="Write your message here..."></textarea>
+            <button onclick="submitUserReport()" class="btn-main btn-green">Submit Report</button>
+
+            <h4 style="margin-top:15px; font-size:12px;">Admin Responses:</h4>
+            <div id="uReportResponses"></div>
+        </div>
+    </div>
+
+    <!-- 6. ADMIN DASHBOARD -->
+    <div id="adminPanel" class="container">
+        <h1>🛡️ Admin Dashboard</h1>
+        <p>System Administration</p>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchAdminTab('atab-reports')">📩 User Reports</button>
+            <button class="tab-btn" onclick="switchAdminTab('atab-logs')">📊 Logs</button>
+        </div>
+
+        <div id="atab-reports" class="tab-content active">
+            <div id="adminReportsList"></div>
+        </div>
+
+        <div id="atab-logs" class="tab-content">
+            <p>User access logs and system activity.</p>
+        </div>
+    </div>
+
+    <!-- HIDDEN FILE INPUT FOR PHOTO UPLOAD -->
+    <input type="file" id="hiddenFileInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(event)">
+
     <script>
-        // =========================================================
-        // IPA-PASTE MO DITO ANG NATANGGAP MONG 3 EMAILJS KEYS:
-        // =========================================================
-        const EMAILJS_PUBLIC_KEY = "I-PASTE_ANG_PUBLIC_KEY_DITO"; 
-        const EMAILJS_SERVICE_ID = "I-PASTE_ANG_SERVICE_ID_DITO"; 
-        const EMAILJS_TEMPLATE_ID = "I-PASTE_ANG_TEMPLATE_ID_DITO"; 
-        // =========================================================
+        const EMAILJS_PUBLIC_KEY = "2PV1h2_hDzWgqxmT4"; 
+        const EMAILJS_SERVICE_ID = "service_jrpo2006"; 
+        const EMAILJS_TEMPLATE_ID = "template_g6rial5"; 
 
-        (function() {
-            if (EMAILJS_PUBLIC_KEY !== "I-PASTE_ANG_PUBLIC_KEY_DITO") {
-                emailjs.init(EMAILJS_PUBLIC_KEY);
-            }
-        })();
+        (function(){ if(EMAILJS_PUBLIC_KEY) emailjs.init(EMAILJS_PUBLIC_KEY); })();
 
+        let activeUploadType = 'profile'; 
         let generatedOTP = null;
         let tempUserCredentials = {};
-        let timerInterval = null;
+
+        const ADMIN_GMAIL = "johnreypelaezoliva@gmail.com";
+        const ADMIN_PASS = "@adminjohnrey202006";
 
         window.onload = function() {
+            startLiveClock();
+            renderMenu();
+
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const role = localStorage.getItem('currentRole');
 
             if (isLoggedIn) {
-                showDashboard();
-            } else {
-                const existingUser = localStorage.getItem('userContact');
-                if (existingUser) {
-                    showLoginCard();
+                if (role === 'Admin') {
+                    showAdminPanel();
                 } else {
-                    showRegisterCard();
+                    openScreenTimeCard();
                 }
+            } else {
+                showLoginCard();
             }
 
-            updateClock();
+            loadMediaPhotos();
+            loadUserProfileData();
+            startScheduleMonitor();
         };
 
-        function showRegisterCard() {
-            document.getElementById('registerCard').style.display = 'block';
+        /* LIVE CLOCK */
+        function startLiveClock() {
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('liveClockDisplay').innerText = now.toLocaleTimeString();
+            }, 1000);
+        }
+
+        /* DYNAMIC MENU */
+        function renderMenu() {
+            const menu = document.getElementById('dropdownMenu');
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const role = localStorage.getItem('currentRole');
+
+            if (!isLoggedIn) {
+                menu.innerHTML = `
+                    <button onclick="showLoginCard()">👤 Login</button>
+                    <button onclick="showRegisterCard()">📝 Create New Account</button>
+                `;
+            } else if (role === 'Admin') {
+                menu.innerHTML = `
+                    <button onclick="showAdminPanel()">🛡️ Admin Dashboard</button>
+                    <button onclick="logout()">🚪 Logout</button>
+                `;
+            } else {
+                menu.innerHTML = `
+                    <button onclick="openScreenTimeCard()">⏱️ Screen Time Control</button>
+                    <button onclick="logout()">🚪 Logout</button>
+                `;
+            }
+        }
+
+        function toggleDropdown() {
+            const menu = document.getElementById('dropdownMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function hideAllCards() {
+            document.getElementById('registerCard').style.display = 'none';
             document.getElementById('loginCard').style.display = 'none';
             document.getElementById('otpCard').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('userProfileCard').style.display = 'none';
+            document.getElementById('screenTimeCard').style.display = 'none';
+            document.getElementById('dropdownMenu').style.display = 'none';
         }
 
-        function showLoginCard() {
-            document.getElementById('registerCard').style.display = 'none';
-            document.getElementById('loginCard').style.display = 'block';
-            document.getElementById('otpCard').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'none';
+        function showRegisterCard() { hideAllCards(); document.getElementById('registerCard').style.display = 'block'; }
+        function showLoginCard() { hideAllCards(); document.getElementById('loginCard').style.display = 'block'; }
+
+        function openScreenTimeCard() { 
+            hideAllCards(); 
+            document.getElementById('screenTimeCard').style.display = 'block'; 
+            loadMediaPhotos();
         }
 
-        function showOTPCard(contact) {
-            document.getElementById('registerCard').style.display = 'none';
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('otpCard').style.display = 'block';
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('otpMessage').innerText = `Verification code sent to ${contact}`;
-            
-            startResendTimer();
+        function openUserProfileCard() {
+            hideAllCards();
+            document.getElementById('userProfileCard').style.display = 'block';
+            loadUserProfileData();
+            loadMediaPhotos();
         }
 
-        async function sendVerificationCode(contact) {
-            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+        function showAdminPanel() {
+            hideAllCards();
+            document.getElementById('adminPanel').style.display = 'block';
+        }
 
-            try {
-                const templateParams = {
-                    to_email: contact,
-                    otp_code: generatedOTP
+        /* PHOTO UPLOADER (PROFILE & COVER PHOTO) FIX */
+        function triggerPhotoUpload(type) {
+            activeUploadType = type;
+            document.getElementById('hiddenFileInput').click();
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX = 600;
+                    let w = img.width, h = img.height;
+                    if (w > h ? w > MAX : h > MAX) {
+                        if (w > h) { h *= MAX / w; w = MAX; } else { w *= MAX / h; h = MAX; }
+                    }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+                    if (activeUploadType === 'profile') {
+                        localStorage.setItem('userProfilePic', compressedDataUrl);
+                    } else {
+                        localStorage.setItem('userCoverPic', compressedDataUrl);
+                    }
+                    loadMediaPhotos();
+                    alert("Photo updated successfully!");
                 };
+            };
+            reader.readAsDataURL(file);
+        }
 
-                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
-                return true;
-            } catch (error) {
-                console.error("EmailJS Error:", error);
-                alert("Failed to send email. Check your EmailJS keys or internet connection.");
-                return false;
+        function loadMediaPhotos() {
+            const pPic = localStorage.getItem('userProfilePic') || 'https://via.placeholder.com/80';
+            const cPic = localStorage.getItem('userCoverPic');
+
+            document.getElementById('userProfilePic').src = pPic;
+            document.getElementById('stHeaderLogo').src = pPic;
+
+            if (cPic) {
+                document.getElementById('userCoverBox').style.backgroundImage = `url('${cPic}')`;
+            }
+        }
+
+        /* SCHEDULE & LOCK MANAGEMENT */
+        function saveTimeSchedule() {
+            const start = document.getElementById('lockStartTime').value;
+            const end = document.getElementById('lockEndTime').value;
+
+            if (!start || !end) { alert("Please set both Start and End time!"); return; }
+
+            localStorage.setItem('stStart', start);
+            localStorage.setItem('stEnd', end);
+
+            document.getElementById('scheduleStatus').innerText = `Restricted schedule: ${start} - ${end}`;
+            alert("Schedule saved!");
+        }
+
+        function clearSchedule() {
+            localStorage.removeItem('stStart');
+            localStorage.removeItem('stEnd');
+            document.getElementById('lockStartTime').value = '';
+            document.getElementById('lockEndTime').value = '';
+            document.getElementById('scheduleStatus').innerText = 'No restricted schedule set.';
+            alert("Schedule cleared!");
+        }
+
+        function startScheduleMonitor() {
+            const savedStart = localStorage.getItem('stStart');
+            const savedEnd = localStorage.getItem('stEnd');
+
+            if (savedStart && savedEnd) {
+                document.getElementById('scheduleStatus').innerText = `Restricted schedule: ${savedStart} - ${savedEnd}`;
+            }
+
+            setInterval(() => {
+                const now = new Date();
+                const cur = now.toTimeString().substring(0, 5);
+                const s = localStorage.getItem('stStart');
+                const e = localStorage.getItem('stEnd');
+
+                if (s && e && cur >= s && cur < e) {
+                    document.getElementById('lockScreenOverlay').style.display = 'flex';
+                }
+            }, 5000);
+        }
+
+        function unlockScreenSystem() {
+            document.getElementById('lockScreenOverlay').style.display = 'none';
+        }
+
+        /* TABS NAVIGATION */
+        function switchUserTab(tabId) {
+            document.querySelectorAll('#userProfileCard .tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#userProfileCard .tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function switchAdminTab(tabId) {
+            document.querySelectorAll('#adminPanel .tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('#adminPanel .tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        /* USER DETAILS DATA */
+        function calculateAge() {
+            const dob = document.getElementById('uBirthDate').value;
+            if (dob) {
+                const diff = Date.now() - new Date(dob).getTime();
+                const ageDate = new Date(diff);
+                document.getElementById('uAge').value = Math.abs(ageDate.getUTCFullYear() - 1970);
+            }
+        }
+
+        function saveUserProfileDetails() {
+            const data = {
+                contactNo: document.getElementById('uContactNo').value,
+                country: document.getElementById('uCountry').value,
+                province: document.getElementById('uProvince').value,
+                city: document.getElementById('uCity').value,
+                municipality: document.getElementById('uMunicipality').value,
+                barangay: document.getElementById('uBarangay').value,
+                birthDate: document.getElementById('uBirthDate').value,
+                age: document.getElementById('uAge').value,
+                sex: document.getElementById('uSex').value
+            };
+            localStorage.setItem('userProfileData', JSON.stringify(data));
+            alert("Profile details saved!");
+        }
+
+        function loadUserProfileData() {
+            const saved = localStorage.getItem('userProfileData');
+            if (saved) {
+                const d = JSON.parse(saved);
+                document.getElementById('uContactNo').value = d.contactNo || '';
+                document.getElementById('uCountry').value = d.country || 'Philippines';
+                document.getElementById('uProvince').value = d.province || '';
+                document.getElementById('uCity').value = d.city || '';
+                document.getElementById('uMunicipality').value = d.municipality || '';
+                document.getElementById('uBarangay').value = d.barangay || '';
+                document.getElementById('uBirthDate').value = d.birthDate || '';
+                document.getElementById('uAge').value = d.age || '';
+                document.getElementById('uSex').value = d.sex || 'Male';
+            }
+            const gmail = localStorage.getItem('userContact');
+            if (gmail) document.getElementById('userDisplayName').innerText = gmail;
+        }
+
+        /* LOGIN & REGISTER */
+        function processLogin() {
+            const role = document.getElementById('loginRole').value;
+            const contact = document.getElementById('loginContact').value.trim();
+            const pass = document.getElementById('loginPass').value;
+
+            if (role === 'Admin') {
+                if (contact === ADMIN_GMAIL && pass === ADMIN_PASS) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentRole', 'Admin');
+                    renderMenu();
+                    showAdminPanel();
+                } else alert("Invalid Admin credentials!");
+            } else {
+                if (contact === localStorage.getItem('userContact') && pass === localStorage.getItem('userPassword')) {
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentRole', 'User');
+                    renderMenu();
+                    openScreenTimeCard();
+                } else alert("Invalid User credentials!");
             }
         }
 
@@ -306,197 +776,47 @@
             const contact = document.getElementById('regContact').value.trim();
             const pass = document.getElementById('regPass').value;
             const confirmPass = document.getElementById('regConfirmPass').value;
-            const errorElement = document.getElementById('regError');
-            const regBtn = document.getElementById('regBtn');
 
-            if (!contact || !pass || !confirmPass) {
-                errorElement.innerText = 'Please fill out all fields!';
+            if (!contact || !pass || pass !== confirmPass) {
+                document.getElementById('regError').innerText = "Check inputs.";
                 return;
             }
 
-            if (!contact.includes('@')) {
-                errorElement.innerText = 'Please enter a valid Gmail address!';
-                return;
-            }
-
-            if (pass !== confirmPass) {
-                errorElement.innerText = 'Passwords do not match!';
-                return;
-            }
-
-            regBtn.disabled = true;
-            regBtn.innerText = 'Sending Code...';
-
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
             tempUserCredentials = { contact, pass };
-            const sentSuccess = await sendVerificationCode(contact);
 
-            regBtn.disabled = false;
-            regBtn.innerText = 'Register & Send Code';
-
-            if (sentSuccess) {
-                errorElement.innerText = '';
-                showOTPCard(contact);
-            } else {
-                errorElement.innerText = 'Failed to send code. Please try again.';
-            }
-        }
-
-        function startResendTimer() {
-            let timeLeft = 60;
-            const resendBtn = document.getElementById('resendBtn');
-            resendBtn.disabled = true;
-            
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    resendBtn.innerText = 'Resend Code';
-                    resendBtn.disabled = false;
-                } else {
-                    resendBtn.innerText = `Resend Code (${timeLeft}s)`;
-                    timeLeft--;
-                }
-            }, 1000);
-        }
-
-        async function resendOTP() {
-            if (tempUserCredentials.contact) {
-                const resendBtn = document.getElementById('resendBtn');
-                resendBtn.disabled = true;
-                resendBtn.innerText = 'Sending...';
-
-                const sentSuccess = await sendVerificationCode(tempUserCredentials.contact);
-                if (sentSuccess) {
-                    document.getElementById('otpError').innerText = '';
-                    startResendTimer();
-                } else {
-                    resendBtn.disabled = false;
-                    resendBtn.innerText = 'Resend Code';
-                }
+            try {
+                await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, { to_email: contact, otp_code: generatedOTP });
+                hideAllCards();
+                document.getElementById('otpCard').style.display = 'block';
+            } catch(e) {
+                document.getElementById('regError').innerText = "Failed to send OTP.";
             }
         }
 
         function verifyOTP() {
-            const inputOTP = document.getElementById('otpInput').value.trim();
-            const otpError = document.getElementById('otpError');
-
-            if (inputOTP === generatedOTP) {
+            if (document.getElementById('otpInput').value.trim() === generatedOTP) {
                 localStorage.setItem('userContact', tempUserCredentials.contact);
                 localStorage.setItem('userPassword', tempUserCredentials.pass);
                 localStorage.setItem('isLoggedIn', 'true');
-
-                otpError.innerText = '';
-                clearInterval(timerInterval);
-                showDashboard();
+                localStorage.setItem('currentRole', 'User');
+                renderMenu();
+                openScreenTimeCard();
             } else {
-                otpError.innerText = 'Incorrect verification code. Try again!';
-            }
-        }
-
-        function processLogin() {
-            const contact = document.getElementById('loginContact').value.trim();
-            const pass = document.getElementById('loginPass').value;
-            const loginError = document.getElementById('loginError');
-
-            const savedContact = localStorage.getItem('userContact');
-            const savedPass = localStorage.getItem('userPassword');
-
-            if (contact === savedContact && pass === savedPass) {
-                localStorage.setItem('isLoggedIn', 'true');
-                loginError.innerText = '';
-                showDashboard();
-            } else {
-                loginError.innerText = 'Invalid credentials or account does not exist.';
+                alert("Invalid OTP!");
             }
         }
 
         function logout() {
             localStorage.setItem('isLoggedIn', 'false');
+            localStorage.removeItem('currentRole');
+            renderMenu();
             showLoginCard();
         }
 
-        function showDashboard() {
-            document.getElementById('registerCard').style.display = 'none';
-            document.getElementById('loginCard').style.display = 'none';
-            document.getElementById('otpCard').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-
-            const savedStart = localStorage.getItem('startTime');
-            const savedEnd = localStorage.getItem('endTime');
-
-            if (savedStart && savedEnd) {
-                document.getElementById('startTime').value = savedStart;
-                document.getElementById('endTime').value = savedEnd;
-                document.getElementById('status').innerText = `Restricted schedule: ${savedStart} - ${savedEnd}`;
-            }
-        }
-
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('currentTime').innerText = now.toLocaleTimeString();
-
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            const startScheduleTime = localStorage.getItem('startTime');
-            const endScheduleTime = localStorage.getItem('endTime');
-
-            if (isLoggedIn && startScheduleTime && endScheduleTime) {
-                const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-                const [startHours, startMins] = startScheduleTime.split(':').map(Number);
-                const startMinutes = startHours * 60 + startMins;
-
-                const [endHours, endMins] = endScheduleTime.split(':').map(Number);
-                const endMinutes = endHours * 60 + endMins;
-
-                let isLocked = false;
-
-                if (startMinutes < endMinutes) {
-                    if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-                        isLocked = true;
-                    }
-                } else {
-                    if (currentMinutes >= startMinutes || currentMinutes < endMinutes) {
-                        isLocked = true;
-                    }
-                }
-
-                if (isLocked) {
-                    document.getElementById('lockScreen').style.display = 'flex';
-                } else {
-                    document.getElementById('lockScreen').style.display = 'none';
-                }
-            } else {
-                document.getElementById('lockScreen').style.display = 'none';
-            }
-        }
-
-        setInterval(updateClock, 1000);
-
-        function saveSchedule() {
-            const start = document.getElementById('startTime').value;
-            const end = document.getElementById('endTime').value;
-            
-            if (!start || !end) {
-                alert('Please select both lock start and lock end times!');
-                return;
-            }
-
-            localStorage.setItem('startTime', start);
-            localStorage.setItem('endTime', end);
-
-            document.getElementById('status').innerText = `Restricted window active: ${start} to ${end}`;
-            updateClock();
-        }
-
-        function clearSchedule() {
-            localStorage.removeItem('startTime');
-            localStorage.removeItem('endTime');
-            if (document.getElementById('startTime')) document.getElementById('startTime').value = '';
-            if (document.getElementById('endTime')) document.getElementById('endTime').value = '';
-            if (document.getElementById('status')) document.getElementById('status').innerText = 'Schedule cleared.';
-            updateClock();
+        function toggleThemeMode(mode) {
+            document.documentElement.setAttribute('data-theme', mode);
         }
     </script>
-
 </body>
 </html>
